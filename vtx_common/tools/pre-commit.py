@@ -9,24 +9,19 @@ Updated from https://github.com/cbrueffer/pep8-git-hook
 """
 from __future__ import print_function
 import os
-import re
 import shutil
-import subprocess
 import sys
 import tempfile
 
-def system(*args, **kwargs):
-    kwargs.setdefault('stdout', subprocess.PIPE)
-    proc = subprocess.Popen(args, **kwargs)
-    out, err = proc.communicate()
-    return out
+import vtx_common.utils as v_utils
 
 def main():
     lint_python()
 
 def lint_python():
-    gitdir = system('git', 'rev-parse', '--show-toplevel').decode('utf-8').strip()
-    files = system('git', 'diff', '--cached', '--name-only').decode('utf-8')
+    print('Running pycodestyle against changes files')
+    gitdir = v_utils.system('git', 'rev-parse', '--show-toplevel').decode('utf-8').strip()
+    files = v_utils.system('git', 'diff', '--cached', '--name-only').decode('utf-8')
     pyfiles = [file.strip() for file in files.split('\n') if file.strip().endswith('.py')]
 
     if pyfiles:
@@ -38,11 +33,11 @@ def lint_python():
             if not os.path.exists(filepath):
                 os.makedirs(filepath)
             with open(filename, 'w') as f:
-                system('git', 'show', ':' + name, stdout=f)
+                v_utils.system('git', 'show', ':' + name, stdout=f)
 
         args = ['pycodestyle', f'--config={gitdir}/setup.cfg']
         args.append('.')
-        output = system(*args, cwd=tempdir)
+        output = v_utils.system(*args, cwd=tempdir)
         shutil.rmtree(tempdir)
         if output:
             print('PEP8 style violations have been detected.  Please fix them\n'
