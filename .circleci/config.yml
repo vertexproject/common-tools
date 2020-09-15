@@ -13,7 +13,7 @@ commands:
           name: run tests
           command: |
             . venv/bin/activate
-            circleci tests glob synapse/tests/test_*.py | circleci tests split --split-by=timings | xargs python3 -m pytest -v -s -rs --durations 6 --maxfail 6 -p no:logging --junitxml=test-reports/junit.xml ${COVERAGE_ARGS}
+             python3 -m pytest -v -s -rs --durations 6 --maxfail 6 -p no:logging ${COVERAGE_ARGS}
 
   test_steps_python:
     description: "Python test steps"
@@ -24,7 +24,10 @@ commands:
           keys:
             - v2-venv-{{ .Environment.CIRCLE_STAGE }}-{{ .Branch }}-{{ checksum "setup.py" }}
 
-      - do_venv_setup
+      - run:
+          name: install requirements
+          command: |
+            python -m pip install -U -r requirements.txt
 
       - save_cache:
           paths:
@@ -35,8 +38,7 @@ commands:
           name: syntax
           command: |
             . venv/bin/activate
-            if [ -n "${RUN_SYNTAX}" ]; then pycodestyle synapse; fi;
-            if [ -n "${RUN_SYNTAX}" ]; then pycodestyle scripts; fi;
+            if [ -n "${RUN_SYNTAX}" ]; then pycodestyle; fi;
 
       - do_test_execution
 
@@ -127,7 +129,7 @@ commands:
 jobs:
 
   python37:
-    parallelism: 8
+    parallelism: 1
     docker:
       - image: circleci/python:3.7
         environment:
@@ -160,40 +162,28 @@ workflows:
   run_tests:
     jobs:
       - python37:
-        filters:
-          tags:
-            only: /.*/
-          branches:
-            only: /.*/
+          filters:
+            tags:
+              only: /.*/
+            branches:
+              only: /.*/
 
       - deploy_pypi:
-        requires:
-          - python37
-        context: PypiAccess
-        filters:
-          tags:
-            only: /^v[0-9]\.[0-9]+\.[0-9]+((a|b|rc)[0-9]*)?$/
-          branches:
-            ignore: /.*/
+          requires:
+            - python37
+          context: PypiAccess
+          filters:
+            tags:
+              only: /^v[0-9]\.[0-9]+\.[0-9]+((a|b|rc)[0-9]*)?$/
+            branches:
+              ignore: /.*/
 
       - deploy_github_release:
-        requires:
-          - python37
-        context: GithubMachine
-        filters:
-          tags:
-            only: /^v[0-9]\.[0-9]+\.[0-9]+((a|b|rc)[0-9]*)?$/
-          branches:
-            ignore: /.*/
-
-  nightly:
-    triggers:
-      - schedule:
-          cron: "0 12 * * *"
+          requires:
+            - python37
+          context: GithubMachine
           filters:
+            tags:
+              only: /^v[0-9]\.[0-9]+\.[0-9]+((a|b|rc)[0-9]*)?$/
             branches:
-              only:
-                - master
-    jobs:
-      - doctests
-      - python37
+              ignore: /.*/
