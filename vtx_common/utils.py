@@ -12,6 +12,7 @@ def system(*args, **kwargs) -> ByteString:
     return out
 
 def reqGitDir(cwd: AnyStr =None) -> bool:
+
     if not cwd:
         cwd = os.getcwd()
     gitdir = os.path.join(cwd, '.git')
