@@ -12,7 +12,7 @@ def system(*args, **kwargs) -> ByteString:
     return out
 
 def reqGitDir(cwd: AnyStr =None) -> bool:
-
+    '''Require the given directory to have a .git directory in it.'''
     if not cwd:
         cwd = os.getcwd()
     gitdir = os.path.join(cwd, '.git')

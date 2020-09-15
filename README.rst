@@ -8,7 +8,7 @@ These tools can be invoked as Python modules from the Python command line (``pyt
 include the following:
 
 ``vtx_common.tools.github_release``
-    Words go here.
+    This can be used to automatically push a Release up to github using a changelog file.
 
 ``vtx_common.tools.pep8_staged_files``
     Runs ``autopep8`` against the repository. Must be run from the root of the repository. Can use the following Bash
@@ -24,4 +24,4 @@ include the following:
     This will run ``pycodestyle`` against Python files to be committed. It assumes that there is a ``setup.cfg`` file
     in the root directory of the repo.
 
-
+This package also installs ``bump2version``, ``pytest``, ``pytest-cov`` and ``pytest-xdist`` packages.
