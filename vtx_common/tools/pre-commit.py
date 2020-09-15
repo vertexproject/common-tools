@@ -19,12 +19,12 @@ def main():
     lint_python()
 
 def lint_python():
-    print('Running pycodestyle against changes files')
     gitdir = v_utils.system('git', 'rev-parse', '--show-toplevel').decode('utf-8').strip()
     files = v_utils.system('git', 'diff', '--cached', '--name-only').decode('utf-8')
     pyfiles = [file.strip() for file in files.split('\n') if file.strip().endswith('.py')]
 
     if pyfiles:
+        print('pre-commit - running pycodestyle against python files.')
         tempdir = tempfile.mkdtemp()
         for name in pyfiles:
             filename = os.path.join(tempdir, name)
