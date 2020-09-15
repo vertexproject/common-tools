@@ -24,7 +24,7 @@ setup(
     description='Vertex project tools to assist with packaging.',
     author='The Vertex Project LLC',
     author_email='epiphyte+tools@vertex.link',
-    url='https://github.com/vertexproject/vertex-tools-common',
+    url='https://github.com/vertexproject/common-tools',
     license='Apache License 2.0',
 
     packages=find_packages(exclude=['scripts',
