@@ -9,7 +9,7 @@ Initial public release for the ``vtx_common`` package.
 
 
 v0.0.1a2 - 2020-09-15
-====================
+=====================
 
 Re-release with updated url.
 
