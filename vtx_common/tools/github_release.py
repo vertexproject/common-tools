@@ -52,7 +52,7 @@ def main(argv):
 
     tag = os.getenv(opts.tagvar, '')
     if not tag:
-        logger.error('No tag found')
+        logger.error(f'No tag found for {opts.tagvar}')
         return 1
 
     logger.info(f'envar {opts.tagvar} resolved to {tag}')
