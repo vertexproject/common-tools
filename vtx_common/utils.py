@@ -4,7 +4,7 @@ import subprocess
 
 from typing import ByteString, AnyStr
 
-def system(*args, **kwargs) -> ByteString:
+def system(*args, **kwargs) -> bytes:
     '''Simple subprocess wrapper'''
     kwargs.setdefault('stdout', subprocess.PIPE)
     proc = subprocess.Popen(args, **kwargs)
