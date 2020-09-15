@@ -1,0 +1,3 @@
+[report]
+omit =
+    */vtx_common/tests/*
