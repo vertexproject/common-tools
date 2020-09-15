@@ -27,6 +27,8 @@ commands:
       - run:
           name: install requirements
           command: |
+            python3 -m venv --copies venv
+            . venv/bin/activate
             python -m pip install -U -r requirements.txt
 
       - save_cache:
@@ -38,7 +40,7 @@ commands:
           name: syntax
           command: |
             . venv/bin/activate
-            if [ -n "${RUN_SYNTAX}" ]; then pycodestyle; fi;
+            if [ -n "${RUN_SYNTAX}" ]; then pycodestyle --exclude venv; fi;
 
       - do_test_execution
 
