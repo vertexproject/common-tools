@@ -173,7 +173,7 @@ workflows:
       - deploy_pypi:
           requires:
             - python37
-          context: PypiAccess
+          context: PublicPyPiAccess
           filters:
             tags:
               only: /^v[0-9]\.[0-9]+\.[0-9]+((a|b|rc)[0-9]*)?$/
