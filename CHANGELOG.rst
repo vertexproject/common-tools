@@ -3,6 +3,21 @@ Vertex Common Tools Changelog
 *****************************
 
 
+v0.1.3 - 2020-09-16
+===================
+
+Features and Enhancements
+-------------------------
+
+Add a ``--dry-run`` option to the ``github_release`` tool.
+
+
+Bugfixes
+--------
+
+Fix an issue with the README.
+
+
 v0.1.2 - 2020-09-16
 ===================
 
