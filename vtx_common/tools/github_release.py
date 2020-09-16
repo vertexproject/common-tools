@@ -21,10 +21,13 @@ def get_parser():
                       help='Environment variable to pull the github user from')
     pars.add_argument('-r', '--github-repo', dest='gitrepovar', default='CIRCLE_PROJECT_REPONAME', type=str,
                       help='Environment variable to pull the github repo from')
-    pars.add_argument('-e', '--tagvar', dest='tagvar', default='CIRCLE_TAG', type=str,
+    pars.add_argument('-t', '--tagvar', dest='tagvar', default='CIRCLE_TAG', type=str,
                       help='Environment variable to pull the tag from.')
     pars.add_argument('-c', '--changelog', dest='changelog', default='./CHANGELOG.rst',
                       help='Path to changelog file to process')
+    pars.add_argument('-d', '--dry-run', dest='dryrun', default=False, action='store_true',
+                      help='Do not do an actual Github release action. Does not require github variables to be set.'
+                           'Does require the tag variable to be set. This will print the changlog found to stderr.')
     return pars
 
 def parse_changelog(s: str) -> dict:
@@ -64,15 +67,19 @@ def main(argv):
     if m.groupdict().get('pre'):
         is_prerelease = True
 
-    gh_token = os.getenv(opts.gittokenvar, '')
+    defvalu = ''
+    if opts.dryrun:
+        defvalu = 'DRYRUN'
+
+    gh_token = os.getenv(opts.gittokenvar, defvalu)
     if not gh_token:
         logger.error('No github token found')
         return 1
-    gh_username = os.getenv(opts.gituservar, '')
+    gh_username = os.getenv(opts.gituservar, defvalu)
     if not gh_username:
         logger.error('No github user found')
         return 1
-    gh_repo = os.getenv(opts.gitrepovar, '')
+    gh_repo = os.getenv(opts.gitrepovar, defvalu)
     if not gh_repo:
         logger.error('No github repo found')
         return 1
@@ -89,6 +96,10 @@ def main(argv):
     logger.info(f'Found changelogs for [{tag}]')
     for line in target_log.split('\n'):
         logger.debug(line)
+
+    if opts.dryrun:
+        logger.info('Dry-run mode enabled. Not performing a Github release action.')
+        return 0
 
     gh = github.Github(gh_token)
 
