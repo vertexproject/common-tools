@@ -16,7 +16,7 @@ include the following:
 
         alias pep8staged='python -m vtx_common.tools.pep8_staged_files'
 
-``vtx_common.tools.pre-commit``
+``vtx_common.tools.pre_commit``
     This is used as a Git pre-commit hook. This can be easily installed via the following command::
 
         echo "python -m vtx_common.tools.pre_commit" > .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
