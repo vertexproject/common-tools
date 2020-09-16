@@ -1,2 +1,2 @@
-version = (0, 1, 1)
+version = (0, 1, 2)
 verstring = '.'.join([str(x) for x in version])
