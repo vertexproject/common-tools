@@ -2,6 +2,14 @@
 Vertex Common Tools Changelog
 *****************************
 
+v0.1.1 - 2020-09-16
+===================
+
+Bugfixes
+--------
+
+Moved the pre-commit script since it was not importable.
+
 v0.1.0 - 2020-09-15
 ===================
 

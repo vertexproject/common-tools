@@ -19,7 +19,7 @@ include the following:
 ``vtx_common.tools.pre-commit``
     This is used as a Git pre-commit hook. This can be easily installed via the following command::
 
-        echo "python -m vtx_common.tools.pre-commit" > .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
+        echo "python -m vtx_common.tools.pre_commit" > .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
 
     This will run ``pycodestyle`` against Python files to be committed. It assumes that there is a ``setup.cfg`` file
     in the root directory of the repo.
