@@ -2,6 +2,16 @@
 Vertex Common Tools Changelog
 *****************************
 
+
+v0.1.2 - 2020-09-16
+===================
+
+Features and Enhancements
+-------------------------
+
+Add the README.rst to the long description for pypi.
+
+
 v0.1.1 - 2020-09-16
 ===================
 
