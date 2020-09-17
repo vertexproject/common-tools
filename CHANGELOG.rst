@@ -2,8 +2,20 @@
 Vertex Common Tools Changelog
 *****************************
 
-v0.1.4a1 - 2020-09-16
+v0.1.4 - 2020-09-17
 ===================
+
+Final v0.1.4 release.
+
+Features and Enhancements
+-------------------------
+
+- Add support for removing urls and adding extra lines to the of a github release.
+  (`#2 <https://github.com/vertexproject/common-tools/pull/2>`_)
+
+
+v0.1.4a1 - 2020-09-17
+=====================
 
 Features and Enhancements
 -------------------------
