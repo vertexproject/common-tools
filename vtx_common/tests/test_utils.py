@@ -1,20 +1,9 @@
 import os
-import shutil
-import tempfile
-import unittest
-import contextlib
 
 import vtx_common.utils as v_utils
+import vtx_common.tests.common as t_common
 
-class TestUtils(unittest.TestCase):
-
-    @contextlib.contextmanager
-    def getTempdir(self):
-        tempdir = tempfile.mkdtemp()
-        try:
-            yield tempdir
-        finally:
-            shutil.rmtree(tempdir)
+class TestUtils(t_common.TstBase):
 
     def test_gitdir(self):
 
