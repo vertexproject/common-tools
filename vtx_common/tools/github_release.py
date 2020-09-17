@@ -5,12 +5,14 @@ import logging
 import argparse
 import collections
 
+from typing import List, AnyStr
+
 import github
 
 HEADER_RE = r'v[0-9]+\.[0-9]+\.[0-9]+((a|b|rc)[0-9]*)?\s-\s20[0-9]{2}-[0-9]{2}-[0-9]{2}'
 PASSLINE = r'^=.*$'
 SEMVER_RE = r'v[0-9]+\.[0-9]+\.[0-9]+(?P<pre>((a|b|rc)[0-9]*)?)'
-
+URL_RE = r'\s+\(`#\d+\s<http'
 logger = logging.getLogger(__name__)
 
 def get_parser():
@@ -25,6 +27,10 @@ def get_parser():
                       help='Environment variable to pull the tag from.')
     pars.add_argument('-c', '--changelog', dest='changelog', default='./CHANGELOG.rst',
                       help='Path to changelog file to process')
+    pars.add_argument('--remove-urls', dest='remove_urls', default=False, action='store_true',
+                      help='Remove lines starting with RST formated links.')
+    pars.add_argument('-e', '--extra-lines', dest='extra_lines', type=str, default='EXTRA_LINES',
+                      help='Enrivonment variable to pull extra lines from.')
     pars.add_argument('-d', '--dry-run', dest='dryrun', default=False, action='store_true',
                       help='Do not do an actual Github release action. Does not require github variables to be set.'
                            'Does require the tag variable to be set. This will print the changlog found to stderr.')
@@ -32,7 +38,7 @@ def get_parser():
 
 def parse_changelog(s: str) -> dict:
     curv = None
-    v2line = collections.defaultdict(list)
+    ret = collections.defaultdict(list)
     for line in s.split('\n'):
         if re.match(HEADER_RE, line):
             curv = line.split(' ', 1)[0]
@@ -40,13 +46,16 @@ def parse_changelog(s: str) -> dict:
         if re.match(PASSLINE, line):
             continue
         if curv:
-            v2line[curv].append(line)
+            ret[curv].append(line)
 
-    ret = {}
-    for k, v in v2line.items():
-        lines = '\n'.join(v)
-        ret[k] = lines.strip()
+    return ret
 
+def remove_urls(lines: List[AnyStr]) -> List[AnyStr]:
+    ret = []
+    for line in lines:
+        if re.search(URL_RE, line):
+            continue
+        ret.append(line)
     return ret
 
 def main(argv):
@@ -84,6 +93,10 @@ def main(argv):
         logger.error('No github repo found')
         return 1
 
+    extra_lines = os.getenv(opts.extra_lines, '')
+    if extra_lines:
+        logger.info(f'Extra lines found: {extra_lines}')
+
     raw_changelog = open(opts.changelog, 'rb').read().decode()
     parsed_logs = parse_changelog(raw_changelog)
 
@@ -94,6 +107,22 @@ def main(argv):
         # This condition should not end up failing a CI pipeline.
         return 0
     logger.info(f'Found changelogs for [{tag}]')
+
+    if opts.remove_urls:
+        logger.info('Removing URLs')
+        target_log = remove_urls(target_log)
+
+    # join logs together and strip them
+    target_log = '\n'.join(target_log)
+    target_log = target_log.strip()
+
+    if extra_lines:
+        logger.info(f'Appending extra line data')
+        target_log = '\n'.join([target_log, '', extra_lines])
+        # remove trailing data if present in extra_lines
+        target_log = target_log.strip()
+
+    logger.info('Final Log:')
     for line in target_log.split('\n'):
         logger.debug(line)
 
