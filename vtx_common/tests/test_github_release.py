@@ -1,3 +1,6 @@
+import os
+import argparse
+
 import vtx_common.tests.common as t_common
 import vtx_common.tools.github_release as v_ghr
 
@@ -83,6 +86,23 @@ Improved Documentation
   (`#1862 <https://github.com/vertexproject/synapse/pull/1862>`_)
 '''
 
+setup_cfg = '''
+
+[vtx_common:github_release]
+release-name = Vertex Common Tools
+extra-lines = Words go here
+
+              More words go here!
+dry-run = true
+remove-urls = false
+nope = does not matter
+test-int = 1138
+'''
+
+extra_lines = '''Words go here
+
+More words go here!'''
+
 class TestGithubRelease(t_common.TstBase):
 
     def test_changelog(self):
@@ -106,3 +126,27 @@ class TestGithubRelease(t_common.TstBase):
         self.assertFalse(line in nlines)
         line = '- Refactor an Axon unit test to make it easier to test alternative Axon implementations.'
         self.assertTrue(line in nlines)
+
+    def test_setup_parse(self):
+
+        v_ghr.CFG_OPTS['test-int'] = {
+            'type': 'int',
+            'key': 'test_int',
+        }
+
+        with self.getTempdir() as dirn:
+            fp = os.path.join(dirn, 'temp.cfg')
+            with open(fp, 'wb') as fd:
+                fd.write(setup_cfg.encode())
+
+            opts = argparse.Namespace()
+            self.eq(vars(opts), {})
+            v_ghr.pars_config(opts, fp)
+            info = vars(opts)
+
+            self.true(len(info) == 5)
+            self.eq(info.get('dryrun'), True)
+            self.eq(info.get('remove_urls'), False)
+            self.eq(info.get('test_int'), 1138)
+            self.eq(info.get('release_name'), 'Vertex Common Tools')
+            self.eq(info.get('extra_lines'), extra_lines)

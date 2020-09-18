@@ -4,6 +4,7 @@ import sys
 import logging
 import argparse
 import collections
+import configparser
 
 from typing import List, AnyStr
 
@@ -34,6 +35,8 @@ def get_parser():
     pars.add_argument('-d', '--dry-run', dest='dryrun', default=False, action='store_true',
                       help='Do not do an actual Github release action. Does not require github variables to be set.'
                            'Does require the tag variable to be set. This will print the changlog found to stderr.')
+    pars.add_argument('--release-name', dest='release_name', default=None, type=str,
+                      help='Release name to prefix the tag with for the github release.')
     return pars
 
 def parse_changelog(s: str) -> dict:
@@ -57,6 +60,56 @@ def remove_urls(lines: List[AnyStr]) -> List[AnyStr]:
             continue
         ret.append(line)
     return ret
+
+CFG_HEADER = 'vtx_common:github_release'
+
+CFG_OPTS = {
+    'release-name': {
+        'type': 'str',
+        'key': 'release_name',
+    },
+    'extra-lines': {
+        'type': 'str',
+        'key': 'extra_lines',
+    },
+    'remove-urls': {
+        'type': 'bool',
+        'key': 'remove_urls',
+    },
+    'dry-run': {
+        'type': 'bool',
+        'key': 'dryrun',
+    },
+}
+
+def pars_config(opts: argparse.Namespace,
+                fn: AnyStr,
+                ):
+    if not os.path.exists(fn):
+        logger.debug('Config file [{}] does not exist.')
+        return
+
+    config = configparser.RawConfigParser()
+    config.read(fn)
+
+    if not config.has_section(CFG_HEADER):
+        return
+
+    for opt in config.options(CFG_HEADER):
+        if opt not in CFG_OPTS:
+            continue
+        info = CFG_OPTS.get(opt)
+        typ = info.get('type')
+        if typ == 'bool':
+            valu = config.getboolean(CFG_HEADER, opt)
+        elif typ == 'int':
+            valu = config.getint(CFG_HEADER, opt)
+        else:
+            valu = config.get(CFG_HEADER, opt)
+
+        setattr(opts, info.get('key'), valu)
+
+    return
 
 def main(argv):
     pars = get_parser()
@@ -126,6 +179,12 @@ def main(argv):
     for line in target_log.split('\n'):
         logger.debug(line)
 
+    name = tag
+    if opts.release_name:
+        name = f'{opts.release_name} {tag}'
+
+    logger.info(f'Release Name: [{name}]')
+
     if opts.dryrun:
         logger.info('Dry-run mode enabled. Not performing a Github release action.')
         return 0
@@ -138,7 +197,7 @@ def main(argv):
 
     logger.info('Making github release')
     release = repo.create_git_release(tag=tag,
-                                      name=tag,
+                                      name=name,
                                       draft=False,
                                       message=target_log,
                                       prerelease=is_prerelease,
