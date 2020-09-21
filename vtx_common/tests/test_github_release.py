@@ -108,24 +108,24 @@ class TestGithubRelease(t_common.TstBase):
     def test_changelog(self):
 
         logs = v_ghr.parse_changelog(synapse_changelog)
-        self.assertEqual(3, len(logs))
-        self.assertEqual(set(logs.keys()),
+        self.eq(3, len(logs))
+        self.eq(set(logs.keys()),
                          {'v2.7.1', 'v2.7.2', 'v2.7.3'})
 
         lines = logs.get('v2.7.1')
         line = '  (`#1860 <https://github.com/vertexproject/synapse/issues/1860>`_)'
-        self.assertTrue(line in lines)
+        self.true(line in lines)
         line = '- Refactor an Axon unit test to make it easier to test alternative Axon implementations.'
-        self.assertTrue(line in lines)
+        self.true(line in lines)
 
         line = '  (`#1880 <https://github.com/vertexproject/synapse/pull/1880>`_)'
-        self.assertFalse(line in lines)
+        self.false(line in lines)
 
         nlines = v_ghr.remove_urls(lines)
         line = '  (`#1860 <https://github.com/vertexproject/synapse/issues/1860>`_)'
-        self.assertFalse(line in nlines)
+        self.false(line in nlines)
         line = '- Refactor an Axon unit test to make it easier to test alternative Axon implementations.'
-        self.assertTrue(line in nlines)
+        self.true(line in nlines)
 
     def test_setup_parse(self):
 
