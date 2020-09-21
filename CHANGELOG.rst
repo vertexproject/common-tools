@@ -2,6 +2,18 @@
 Vertex Common Tools Changelog
 *****************************
 
+
+v0.1.6 - 2020-09-21
+===================
+
+Features and Enhancements
+-------------------------
+
+- Add support for parsing setup.cfg for configuration data that may change often per repository. This release is
+  effectively a re-release of v0.1.5 with this changelog entry.
+  (`#3 <https://github.com/vertexproject/common-tools/pull/3>`_)
+
+
 v0.1.4 - 2020-09-17
 ===================
 
