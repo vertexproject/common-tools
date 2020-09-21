@@ -30,8 +30,6 @@ def get_parser():
                       help='Path to changelog file to process')
     pars.add_argument('--remove-urls', dest='remove_urls', default=False, action='store_true',
                       help='Remove lines starting with RST formated links.')
-    pars.add_argument('-e', '--extra-lines', dest='extra_lines', type=str, default='EXTRA_LINES',
-                      help='Enrivonment variable to pull extra lines from.')
     pars.add_argument('-d', '--dry-run', dest='dryrun', default=False, action='store_true',
                       help='Do not do an actual Github release action. Does not require github variables to be set.'
                            'Does require the tag variable to be set. This will print the changlog found to stderr.')
@@ -71,6 +69,7 @@ CFG_OPTS = {
     'extra-lines': {
         'type': 'str',
         'key': 'extra_lines',
+        'defval': ''
     },
     'remove-urls': {
         'type': 'bool',
@@ -95,17 +94,20 @@ def pars_config(opts: argparse.Namespace,
     if not config.has_section(CFG_HEADER):
         return
 
-    for opt in config.options(CFG_HEADER):
-        if opt not in CFG_OPTS:
-            continue
-        info = CFG_OPTS.get(opt)
+    for opt, info in CFG_OPTS.items():
         typ = info.get('type')
-        if typ == 'bool':
-            valu = config.getboolean(CFG_HEADER, opt)
-        elif typ == 'int':
-            valu = config.getint(CFG_HEADER, opt)
-        else:
-            valu = config.get(CFG_HEADER, opt)
+        defval = info.get('defval')
+        try:
+            if typ == 'bool':
+                valu = config.getboolean(CFG_HEADER, opt)
+            elif typ == 'int':
+                valu = config.getint(CFG_HEADER, opt)
+            else:
+                valu = config.get(CFG_HEADER, opt,)
+        except configparser.NoOptionError:
+            if defval is None:
+                continue
+            valu = defval
 
         setattr(opts, info.get('key'), valu)
 
@@ -113,7 +115,11 @@ def pars_config(opts: argparse.Namespace,
 
 def main(argv):
     pars = get_parser()
-    opts = pars.parse_args(argv)
+
+    opts = argparse.Namespace()
+    pars_config(opts, 'setup.cfg')
+
+    opts = pars.parse_args(argv, namespace=opts)
 
     tag = os.getenv(opts.tagvar, '')
     if not tag:
@@ -146,7 +152,7 @@ def main(argv):
         logger.error('No github repo found')
         return 1
 
-    extra_lines = os.getenv(opts.extra_lines, '')
+    extra_lines = opts.extra_lines
     if extra_lines:
         logger.info(f'Extra lines found: {extra_lines}')
 

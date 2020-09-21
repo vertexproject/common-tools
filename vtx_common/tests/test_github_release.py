@@ -133,6 +133,11 @@ class TestGithubRelease(t_common.TstBase):
             'type': 'int',
             'key': 'test_int',
         }
+        v_ghr.CFG_OPTS['test-str'] = {
+            'type': 'str',
+            'key': 'test_str',
+            'defval': 'test'
+        }
 
         with self.getTempdir() as dirn:
             fp = os.path.join(dirn, 'temp.cfg')
@@ -144,9 +149,10 @@ class TestGithubRelease(t_common.TstBase):
             v_ghr.pars_config(opts, fp)
             info = vars(opts)
 
-            self.true(len(info) == 5)
+            self.true(len(info) == 6)
             self.eq(info.get('dryrun'), True)
             self.eq(info.get('remove_urls'), False)
             self.eq(info.get('test_int'), 1138)
             self.eq(info.get('release_name'), 'Vertex Common Tools')
             self.eq(info.get('extra_lines'), extra_lines)
+            self.eq(info.get('test_str'), 'test')
