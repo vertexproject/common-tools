@@ -16,6 +16,31 @@ SEMVER_RE = r'v[0-9]+\.[0-9]+\.[0-9]+(?P<pre>((a|b|rc)[0-9]*)?)'
 URL_RE = r'\s+\(`#\d+\s<http'
 logger = logging.getLogger(__name__)
 
+CFG_HEADER = 'vtx_common:github_release'
+
+RELEASE_NAME = 'release_name'
+REMOVE_URLS = 'remove_urls'
+DRYRUN = 'dryrun'
+CFG_OPTS = {
+    'release-name': {
+        'type': 'str',
+        'key': RELEASE_NAME,
+    },
+    'extra-lines': {
+        'type': 'str',
+        'key': 'extra_lines',
+        'defval': ''
+    },
+    'remove-urls': {
+        'type': 'bool',
+        'key': REMOVE_URLS,
+    },
+    'dry-run': {
+        'type': 'bool',
+        'key': DRYRUN,
+    },
+}
+
 def get_parser():
     pars = argparse.ArgumentParser()
     pars.add_argument('-g', '--github-token', dest='gittokenvar', default='GITHUB_TOKEN', type=str,
@@ -28,12 +53,12 @@ def get_parser():
                       help='Environment variable to pull the tag from.')
     pars.add_argument('-c', '--changelog', dest='changelog', default='./CHANGELOG.rst',
                       help='Path to changelog file to process')
-    pars.add_argument('--remove-urls', dest='remove_urls', default=False, action='store_true',
+    pars.add_argument('--remove-urls', dest=REMOVE_URLS, default=False, action='store_true',
                       help='Remove lines starting with RST formated links.')
-    pars.add_argument('-d', '--dry-run', dest='dryrun', default=False, action='store_true',
+    pars.add_argument('-d', '--dry-run', dest=DRYRUN, default=False, action='store_true',
                       help='Do not do an actual Github release action. Does not require github variables to be set.'
                            'Does require the tag variable to be set. This will print the changlog found to stderr.')
-    pars.add_argument('--release-name', dest='release_name', default=None, type=str,
+    pars.add_argument('--release-name', dest=RELEASE_NAME, default=None, type=str,
                       help='Release name to prefix the tag with for the github release.')
     return pars
 
@@ -58,28 +83,6 @@ def remove_urls(lines: List[AnyStr]) -> List[AnyStr]:
             continue
         ret.append(line)
     return ret
-
-CFG_HEADER = 'vtx_common:github_release'
-
-CFG_OPTS = {
-    'release-name': {
-        'type': 'str',
-        'key': 'release_name',
-    },
-    'extra-lines': {
-        'type': 'str',
-        'key': 'extra_lines',
-        'defval': ''
-    },
-    'remove-urls': {
-        'type': 'bool',
-        'key': 'remove_urls',
-    },
-    'dry-run': {
-        'type': 'bool',
-        'key': 'dryrun',
-    },
-}
 
 def pars_config(opts: argparse.Namespace,
                 fn: AnyStr,
