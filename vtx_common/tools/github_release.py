@@ -21,6 +21,7 @@ CFG_HEADER = 'vtx_common:github_release'
 RELEASE_NAME = 'release_name'
 REMOVE_URLS = 'remove_urls'
 DRYRUN = 'dryrun'
+CHANGELOG = 'changelog'
 CFG_OPTS = {
     'release-name': {
         'type': 'str',
@@ -39,6 +40,10 @@ CFG_OPTS = {
         'type': 'bool',
         'key': DRYRUN,
     },
+    'changelog': {
+        'type': 'str',
+        'key': CHANGELOG,
+    }
 }
 
 def get_parser():
@@ -51,7 +56,7 @@ def get_parser():
                       help='Environment variable to pull the github repo from')
     pars.add_argument('-t', '--tagvar', dest='tagvar', default='CIRCLE_TAG', type=str,
                       help='Environment variable to pull the tag from.')
-    pars.add_argument('-c', '--changelog', dest='changelog', default='./CHANGELOG.rst',
+    pars.add_argument('-c', '--changelog', dest=CHANGELOG, default='./CHANGELOG.rst',
                       help='Path to changelog file to process')
     pars.add_argument('--remove-urls', dest=REMOVE_URLS, default=False, action='store_true',
                       help='Remove lines starting with RST formated links.')
@@ -114,6 +119,7 @@ def pars_config(opts: argparse.Namespace,
 
         setattr(opts, info.get('key'), valu)
 
+    logger.info(f'Parsed {opts} from setup.cfg')
     return
 
 def main(argv):
@@ -123,6 +129,7 @@ def main(argv):
     pars_config(opts, 'setup.cfg')
 
     opts = pars.parse_args(argv, namespace=opts)
+    logger.info(f'Final namespace: {opts}')
 
     tag = os.getenv(opts.tagvar, '')
     if not tag:
