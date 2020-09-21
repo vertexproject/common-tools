@@ -8,13 +8,13 @@ class TestUtils(t_common.TstBase):
     def test_gitdir(self):
 
         with self.getTempdir() as dirn:
-            self.assertFalse(v_utils.reqGitDir(dirn))
+            self.false(v_utils.reqGitDir(dirn))
             os.makedirs(os.path.join(dirn, '.git'))
-            self.assertTrue(v_utils.reqGitDir(dirn))
+            self.true(v_utils.reqGitDir(dirn))
 
     def test_system(self):
         cwd = os.getcwd()
         buf = v_utils.system('pwd')
         system_pwd = buf.decode()
         system_pwd = system_pwd.strip()
-        self.assertEqual(cwd, system_pwd)
+        self.eq(cwd, system_pwd)

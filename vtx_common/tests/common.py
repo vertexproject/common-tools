@@ -12,3 +12,18 @@ class TstBase(unittest.TestCase):
             yield tempdir
         finally:
             shutil.rmtree(tempdir)
+
+    def eq(self, a, b):
+        self.assertEqual(a, b)
+
+    def ne(self, a, b):
+        self.assertNotEqual(a, b)
+
+    def len(self, n, obj):
+        self.eq(n, len(obj))
+
+    def true(self, expr):
+        self.assertTrue(expr)
+
+    def false(self, expr):
+        self.assertFalse(expr)
