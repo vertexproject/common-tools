@@ -2,6 +2,14 @@
 Vertex Common Tools Changelog
 *****************************
 
+v0.1.8 - 2021-08-11
+===================
+
+Features and Enhancements
+-------------------------
+
+- Pin the ``bump2version`` package to ``1.0.1``.
+
 
 v0.1.6 - 2020-09-21
 ===================
