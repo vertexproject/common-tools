@@ -137,9 +137,13 @@ def main(argv):
         return 1
 
     logger.info(f'envar {opts.tagvar} resolved to {tag}')
-    m = re.search(SEMVER_RE, tag)
+    nicetag = tag
+    if '@' in tag:
+        logger.info('@ delimited tag, splitting into name and tag part')
+        tagname, nicetag = tag.split('@')
+    m = re.search(SEMVER_RE, nicetag)
     if not m:
-        logger.error('tag does not match semver regex')
+        logger.error(f'nicetag={nicetag} does not match semver regex')
         return 1
     is_prerelease = False
     if m.groupdict().get('pre'):
@@ -169,13 +173,13 @@ def main(argv):
     raw_changelog = open(opts.changelog, 'rb').read().decode()
     parsed_logs = parse_changelog(raw_changelog)
 
-    target_log = parsed_logs.get(tag)
+    target_log = parsed_logs.get(nicetag)
     if not target_log:
-        logger.error(f'Unable to find logs for tag [{tag}]')
+        logger.error(f'Unable to find logs for tag [{nicetag}]')
         # It's possible for pre-release tags to end up without a changelog.
         # This condition should not end up failing a CI pipeline.
         return 0
-    logger.info(f'Found changelogs for [{tag}]')
+    logger.info(f'Found changelogs for [{nicetag}] in [{opts.changelog}]')
 
     if opts.remove_urls:
         logger.info('Removing URLs')
@@ -200,14 +204,20 @@ def main(argv):
         name = f'{opts.release_name} {tag}'
 
     logger.info(f'Release Name: [{name}]')
+    gh_repo_path = f'{gh_username}/{gh_repo}'
 
     if opts.dryrun:
         logger.info('Dry-run mode enabled. Not performing a Github release action.')
+        logger.info('Would have made release with the following information:')
+        logger.info(f'gh_repo_path={gh_repo_path}')
+        logger.info(f'tag={tag}')
+        logger.info(f'name={name}')
+        logger.info(f'message={target_log}')
+        logger.info(f'prerelease={is_prerelease}')
         return 0
 
     gh = github.Github(gh_token)
 
-    gh_repo_path = f'{gh_username}/{gh_repo}'
     logger.info(f'Getting github repo for {gh_repo_path}')
     repo = gh.get_repo(gh_repo_path)
 
