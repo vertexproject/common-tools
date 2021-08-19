@@ -71,12 +71,8 @@ async def getStormSvcInfo(ctor):
 
     return svcinfo
 
-async def main(argv):
-    pars = makeargparser()
-    opts = pars.parse_args(argv)
-
+def getMessageFromInfo(svcinfo):
     minvers = []
-    svcinfo = await getStormSvcInfo(opts.ctor)
     for pkg in svcinfo.get('pkgs', ()):
         minv = pkg.get('synapse_minversion')
         if minv is None:
@@ -92,6 +88,14 @@ async def main(argv):
         mesg = f'The Storm Service requires a minimum Synapse version of {minv} or greater.'
     else:
         mesg = 'The Storm Service has no minimum Synapse version specified.'
+    return mesg
+
+async def main(argv):
+    pars = makeargparser()
+    opts = pars.parse_args(argv)
+
+    svcinfo = await getStormSvcInfo(opts.ctor)
+    mesg = getMessageFromInfo(svcinfo)
     print(mesg)
     return 0
 
