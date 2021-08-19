@@ -1,6 +1,4 @@
-import os
 import asyncio
-import argparse
 
 import vtx_common.tests.common as t_common
 import vtx_common.tools.get_syn_svc_minvers as v_gssm
