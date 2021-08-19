@@ -1,6 +1,7 @@
 import re
 import os
 import sys
+import asyncio
 import logging
 import argparse
 import collections
@@ -10,6 +11,9 @@ from typing import List, AnyStr
 
 import github
 
+import vtx_common.tools.get_syn_svc_minvers as v_gssm
+
+
 HEADER_RE = r'v[0-9]+\.[0-9]+\.[0-9]+((a|b|rc)[0-9]*)?\s-\s20[0-9]{2}-[0-9]{2}-[0-9]{2}'
 PASSLINE = r'^=.*$'
 SEMVER_RE = r'v[0-9]+\.[0-9]+\.[0-9]+(?P<pre>((a|b|rc)[0-9]*)?)'
@@ -18,10 +22,12 @@ logger = logging.getLogger(__name__)
 
 CFG_HEADER = 'vtx_common:github_release'
 
-RELEASE_NAME = 'release_name'
-REMOVE_URLS = 'remove_urls'
 DRYRUN = 'dryrun'
 CHANGELOG = 'changelog'
+REMOVE_URLS = 'remove_urls'
+RELEASE_NAME = 'release_name'
+STORM_SVC_CTOR = 'storm_svc_ctor'
+
 CFG_OPTS = {
     'release-name': {
         'type': 'str',
@@ -39,6 +45,10 @@ CFG_OPTS = {
     'dry-run': {
         'type': 'bool',
         'key': DRYRUN,
+    },
+    'storm-svc-ctor': {
+        'type': 'str',
+        'key': STORM_SVC_CTOR,
     },
     'changelog': {
         'type': 'str',
@@ -65,6 +75,8 @@ def get_parser():
                            'Does require the tag variable to be set. This will print the changlog found to stderr.')
     pars.add_argument('--release-name', dest=RELEASE_NAME, default=None, type=str,
                       help='Release name to prefix the tag with for the github release.')
+    pars.add_argument('--storm-svc-ctor', dest=STORM_SVC_CTOR, default=None, type=str,
+                      help='Storm service ctor to get minimum storm service from.')
     return pars
 
 def parse_changelog(s: str) -> dict:
@@ -166,9 +178,23 @@ def main(argv):
         logger.error('No github repo found')
         return 1
 
+    extra_parts = []
+
+    ctor = opts.storm_svc_ctor
+    if ctor:
+        logger.info(f'Resolving stormsvc ctor {ctor}')
+        svc_info = asyncio.run(v_gssm.getStormSvcInfo(ctor))
+        minv_message = v_gssm.getMessageFromInfo(svc_info)
+        logger.info(f'Got message: {minv_message}')
+        extra_parts.append(minv_message)
+
     extra_lines = opts.extra_lines
     if extra_lines:
         logger.info(f'Extra lines found: {extra_lines}')
+        extra_parts.append(extra_lines)
+
+    # Join extra lines together
+    extra_lines = '\n'.join(extra_parts)
 
     raw_changelog = open(opts.changelog, 'rb').read().decode()
     parsed_logs = parse_changelog(raw_changelog)
@@ -212,8 +238,8 @@ def main(argv):
         logger.info(f'gh_repo_path={gh_repo_path}')
         logger.info(f'tag={tag}')
         logger.info(f'name={name}')
-        logger.info(f'message={target_log}')
         logger.info(f'prerelease={is_prerelease}')
+        logger.info(f'message={target_log}')
         return 0
 
     gh = github.Github(gh_token)
