@@ -119,7 +119,7 @@ def pars_config(opts: argparse.Namespace,
     config.read(fn)
 
     if not config.has_section(CFG_HEADER):
-        return
+        logger.info(f'No {CFG_HEADER} header found')
 
     for opt, info in CFG_OPTS.items():
         typ = info.get('type')
@@ -131,7 +131,7 @@ def pars_config(opts: argparse.Namespace,
                 valu = config.getint(CFG_HEADER, opt)
             else:
                 valu = config.get(CFG_HEADER, opt,)
-        except configparser.NoOptionError:
+        except (configparser.NoOptionError, configparser.NoSectionError):
             if defval is None:
                 continue
             valu = defval
