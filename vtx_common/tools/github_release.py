@@ -1,7 +1,6 @@
 import re
 import os
 import sys
-import asyncio
 import logging
 import argparse
 import collections
@@ -11,7 +10,7 @@ from typing import List, AnyStr
 
 import github
 
-import vtx_common.tools.get_syn_svc_minvers as v_gssm
+import vtx_common.tools.get_pkg_syn_minver as v_gpsm
 
 
 HEADER_RE = r'v[0-9]+\.[0-9]+\.[0-9]+((a|b|rc)[0-9]*)?\s-\s20[0-9]{2}-[0-9]{2}-[0-9]{2}'
@@ -26,7 +25,8 @@ DRYRUN = 'dryrun'
 CHANGELOG = 'changelog'
 REMOVE_URLS = 'remove_urls'
 RELEASE_NAME = 'release_name'
-STORM_SVC_CTOR = 'storm_svc_ctor'
+STORM_PKG_FILE = 'storm_pkg_file'
+STORM_PKG_TYPE = 'storm_pkg_type'
 
 CFG_OPTS = {
     'release-name': {
@@ -46,9 +46,13 @@ CFG_OPTS = {
         'type': 'bool',
         'key': DRYRUN,
     },
-    'storm-svc-ctor': {
+    'storm-pkg-file': {
         'type': 'str',
-        'key': STORM_SVC_CTOR,
+        'key': STORM_PKG_FILE,
+    },
+    'storm-pkg-type': {
+        'type': 'str',
+        'key': STORM_PKG_TYPE,
     },
     'changelog': {
         'type': 'str',
@@ -75,8 +79,11 @@ def get_parser():
                            'Does require the tag variable to be set. This will print the changlog found to stderr.')
     pars.add_argument('--release-name', dest=RELEASE_NAME, default=None, type=str,
                       help='Release name to prefix the tag with for the github release.')
-    pars.add_argument('--storm-svc-ctor', dest=STORM_SVC_CTOR, default=None, type=str,
-                      help='Storm service ctor to get minimum storm service from.')
+    pars.add_argument('--pkg-file', dest=STORM_PKG_FILE, default=None, type=str,
+                      help='Storm package file to get minimum storm service from.')
+    pars.add_argument('--pkg-type', dest=STORM_PKG_TYPE, default=None, type=str, choices=['Storm Service', 'Power-Up'],
+                      help='Storm package file to get minimum storm service from.')
+
     return pars
 
 def parse_changelog(s: str) -> dict:
@@ -180,11 +187,12 @@ def main(argv):
 
     extra_parts = []
 
-    ctor = opts.storm_svc_ctor
-    if ctor:
-        logger.info(f'Resolving stormsvc ctor {ctor}')
-        svc_info = asyncio.run(v_gssm.getStormSvcInfo(ctor))
-        minv_message = v_gssm.getMessageFromInfo(svc_info)
+    pfile = opts.storm_pkg_file
+    mtyp = opts.storm_pkg_type
+    if pfile and mtyp:
+        logger.info(f'Getting storm package from {pfile}')
+        pkg = v_gpsm.yamlload(pfile)
+        minv_message = v_gpsm.getMessageFromPkg(pkg, mtyp)
         logger.info(f'Got message: {minv_message}')
         extra_parts.append(minv_message)
 
