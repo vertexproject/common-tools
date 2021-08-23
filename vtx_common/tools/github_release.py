@@ -23,10 +23,12 @@ CFG_HEADER = 'vtx_common:github_release'
 
 DRYRUN = 'dryrun'
 CHANGELOG = 'changelog'
+CHANGELOG_PKGNAME = 'changelog_pkgname'
 REMOVE_URLS = 'remove_urls'
 RELEASE_NAME = 'release_name'
 STORM_PKG_FILE = 'storm_pkg_file'
 STORM_PKG_TYPE = 'storm_pkg_type'
+STORM_PKG_FILE_PKGNAME = 'storm_pkg_file_pkgname'
 
 CFG_OPTS = {
     'release-name': {
@@ -50,6 +52,10 @@ CFG_OPTS = {
         'type': 'str',
         'key': STORM_PKG_FILE,
     },
+    'storm-pkg-file-pkgname': {
+        'type': 'bool',
+        'key': STORM_PKG_FILE_PKGNAME,
+    },
     'storm-pkg-type': {
         'type': 'str',
         'key': STORM_PKG_TYPE,
@@ -57,7 +63,11 @@ CFG_OPTS = {
     'changelog': {
         'type': 'str',
         'key': CHANGELOG,
-    }
+    },
+    'changelog-pkgname': {
+        'type': 'bool',
+        'key': CHANGELOG_PKGNAME,
+    },
 }
 
 def get_parser():
@@ -72,6 +82,8 @@ def get_parser():
                       help='Environment variable to pull the tag from.')
     pars.add_argument('-c', '--changelog', dest=CHANGELOG, default='./CHANGELOG.rst',
                       help='Path to changelog file to process')
+    pars.add_argument('--changelog-pkgname', dest=CHANGELOG_PKGNAME, default=False, action='store_true',
+                      help='inject package name derived from a tag into the changelog path.')
     pars.add_argument('--remove-urls', dest=REMOVE_URLS, default=False, action='store_true',
                       help='Remove lines starting with RST formated links.')
     pars.add_argument('-d', '--dry-run', dest=DRYRUN, default=False, action='store_true',
@@ -81,6 +93,8 @@ def get_parser():
                       help='Release name to prefix the tag with for the github release.')
     pars.add_argument('--pkg-file', dest=STORM_PKG_FILE, default=None, type=str,
                       help='Storm package file to get minimum storm service from.')
+    pars.add_argument('--pkg-file', dest=STORM_PKG_FILE_PKGNAME, default=False, action='store_true',
+                      help='inject pkgname derived from a tag into the pkgapath path')
     pars.add_argument('--pkg-type', dest=STORM_PKG_TYPE, default=None, type=str, choices=['Storm Service', 'Power-Up'],
                       help='Storm package file to get minimum storm service from.')
 
@@ -157,9 +171,11 @@ def main(argv):
 
     logger.info(f'envar {opts.tagvar} resolved to {tag}')
     nicetag = tag
+    pkgname = None
     if '@' in tag:
         logger.info('@ delimited tag, splitting into name and tag part')
-        tagname, nicetag = tag.split('@')
+        pkgname, nicetag = tag.split('@')
+        logger.info(f'Got pkgname={pkgname} @ nicetag={nicetag}')
     m = re.search(SEMVER_RE, nicetag)
     if not m:
         logger.error(f'nicetag={nicetag} does not match semver regex')
@@ -190,6 +206,12 @@ def main(argv):
     pfile = opts.storm_pkg_file
     mtyp = opts.storm_pkg_type
     if pfile and mtyp:
+
+        if opts.storm_pkg_file_pkgname:
+            assert pkgname is not None
+            logger.info('Injecting pkgname to pkg path')
+            pfile = pfile.format(pkgname=pkgname)
+
         logger.info(f'Getting storm package from {pfile}')
         pkg = v_gpsm.yamlload(pfile)
         minv_message = v_gpsm.getMessageFromPkg(pkg, mtyp)
@@ -204,7 +226,14 @@ def main(argv):
     # Join extra lines together
     extra_lines = '\n'.join(extra_parts)
 
-    raw_changelog = open(opts.changelog, 'rb').read().decode()
+    changelog_fp = opts.changelog
+    if opts.changelog_pkgname:
+        assert pkgname is not None
+        logger.info('Injecting pkgname to changelog path')
+        changelog_fp = changelog_fp.format(pkgname=pkgname)
+
+    assert os.path.isfile(changelog_fp)
+    raw_changelog = open(changelog_fp, 'rb').read().decode()
     parsed_logs = parse_changelog(raw_changelog)
 
     target_log = parsed_logs.get(nicetag)
