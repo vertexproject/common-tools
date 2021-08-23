@@ -10,6 +10,9 @@ from typing import List, AnyStr
 
 import github
 
+import vtx_common.tools.get_pkg_syn_minver as v_gpsm
+
+
 HEADER_RE = r'v[0-9]+\.[0-9]+\.[0-9]+((a|b|rc)[0-9]*)?\s-\s20[0-9]{2}-[0-9]{2}-[0-9]{2}'
 PASSLINE = r'^=.*$'
 SEMVER_RE = r'v[0-9]+\.[0-9]+\.[0-9]+(?P<pre>((a|b|rc)[0-9]*)?)'
@@ -18,10 +21,15 @@ logger = logging.getLogger(__name__)
 
 CFG_HEADER = 'vtx_common:github_release'
 
-RELEASE_NAME = 'release_name'
-REMOVE_URLS = 'remove_urls'
 DRYRUN = 'dryrun'
 CHANGELOG = 'changelog'
+CHANGELOG_PKGNAME = 'changelog_pkgname'
+REMOVE_URLS = 'remove_urls'
+RELEASE_NAME = 'release_name'
+STORM_PKG_FILE = 'storm_pkg_file'
+STORM_PKG_TYPE = 'storm_pkg_type'
+STORM_PKG_FILE_PKGNAME = 'storm_pkg_file_pkgname'
+
 CFG_OPTS = {
     'release-name': {
         'type': 'str',
@@ -40,10 +48,26 @@ CFG_OPTS = {
         'type': 'bool',
         'key': DRYRUN,
     },
+    'storm-pkg-file': {
+        'type': 'str',
+        'key': STORM_PKG_FILE,
+    },
+    'storm-pkg-file-pkgname': {
+        'type': 'bool',
+        'key': STORM_PKG_FILE_PKGNAME,
+    },
+    'storm-pkg-type': {
+        'type': 'str',
+        'key': STORM_PKG_TYPE,
+    },
     'changelog': {
         'type': 'str',
         'key': CHANGELOG,
-    }
+    },
+    'changelog-pkgname': {
+        'type': 'bool',
+        'key': CHANGELOG_PKGNAME,
+    },
 }
 
 def get_parser():
@@ -58,6 +82,8 @@ def get_parser():
                       help='Environment variable to pull the tag from.')
     pars.add_argument('-c', '--changelog', dest=CHANGELOG, default='./CHANGELOG.rst',
                       help='Path to changelog file to process')
+    pars.add_argument('--changelog-pkgname', dest=CHANGELOG_PKGNAME, default=False, action='store_true',
+                      help='inject package name derived from a tag into the changelog path.')
     pars.add_argument('--remove-urls', dest=REMOVE_URLS, default=False, action='store_true',
                       help='Remove lines starting with RST formated links.')
     pars.add_argument('-d', '--dry-run', dest=DRYRUN, default=False, action='store_true',
@@ -65,6 +91,13 @@ def get_parser():
                            'Does require the tag variable to be set. This will print the changlog found to stderr.')
     pars.add_argument('--release-name', dest=RELEASE_NAME, default=None, type=str,
                       help='Release name to prefix the tag with for the github release.')
+    pars.add_argument('--pkg-file', dest=STORM_PKG_FILE, default=None, type=str,
+                      help='Storm package file to get minimum storm service from.')
+    pars.add_argument('--pkg-file', dest=STORM_PKG_FILE_PKGNAME, default=False, action='store_true',
+                      help='inject pkgname derived from a tag into the pkgapath path')
+    pars.add_argument('--pkg-type', dest=STORM_PKG_TYPE, default=None, type=str, choices=['Storm Service', 'Power-Up'],
+                      help='Storm package file to get minimum storm service from.')
+
     return pars
 
 def parse_changelog(s: str) -> dict:
@@ -100,7 +133,7 @@ def pars_config(opts: argparse.Namespace,
     config.read(fn)
 
     if not config.has_section(CFG_HEADER):
-        return
+        logger.info(f'No {CFG_HEADER} header found')
 
     for opt, info in CFG_OPTS.items():
         typ = info.get('type')
@@ -112,7 +145,7 @@ def pars_config(opts: argparse.Namespace,
                 valu = config.getint(CFG_HEADER, opt)
             else:
                 valu = config.get(CFG_HEADER, opt,)
-        except configparser.NoOptionError:
+        except (configparser.NoOptionError, configparser.NoSectionError):
             if defval is None:
                 continue
             valu = defval
@@ -137,9 +170,15 @@ def main(argv):
         return 1
 
     logger.info(f'envar {opts.tagvar} resolved to {tag}')
-    m = re.search(SEMVER_RE, tag)
+    nicetag = tag
+    pkgname = None
+    if '@' in tag:
+        logger.info('@ delimited tag, splitting into name and tag part')
+        pkgname, nicetag = tag.split('@')
+        logger.info(f'Got pkgname={pkgname} @ nicetag={nicetag}')
+    m = re.search(SEMVER_RE, nicetag)
     if not m:
-        logger.error('tag does not match semver regex')
+        logger.error(f'nicetag={nicetag} does not match semver regex')
         return 1
     is_prerelease = False
     if m.groupdict().get('pre'):
@@ -162,20 +201,48 @@ def main(argv):
         logger.error('No github repo found')
         return 1
 
+    extra_parts = []
+
+    pfile = opts.storm_pkg_file
+    mtyp = opts.storm_pkg_type
+    if pfile and mtyp:
+
+        if opts.storm_pkg_file_pkgname:
+            assert pkgname is not None
+            logger.info('Injecting pkgname to pkg path')
+            pfile = pfile.format(pkgname=pkgname)
+
+        logger.info(f'Getting storm package from {pfile}')
+        pkg = v_gpsm.yamlload(pfile)
+        minv_message = v_gpsm.getMessageFromPkg(pkg, mtyp)
+        logger.info(f'Got message: {minv_message}')
+        extra_parts.append(minv_message)
+
     extra_lines = opts.extra_lines
     if extra_lines:
         logger.info(f'Extra lines found: {extra_lines}')
+        extra_parts.append(extra_lines)
 
-    raw_changelog = open(opts.changelog, 'rb').read().decode()
+    # Join extra lines together
+    extra_lines = '\n'.join(extra_parts)
+
+    changelog_fp = opts.changelog
+    if opts.changelog_pkgname:
+        assert pkgname is not None
+        logger.info('Injecting pkgname to changelog path')
+        changelog_fp = changelog_fp.format(pkgname=pkgname)
+
+    assert os.path.isfile(changelog_fp)
+    raw_changelog = open(changelog_fp, 'rb').read().decode()
     parsed_logs = parse_changelog(raw_changelog)
 
-    target_log = parsed_logs.get(tag)
+    target_log = parsed_logs.get(nicetag)
     if not target_log:
-        logger.error(f'Unable to find logs for tag [{tag}]')
+        logger.error(f'Unable to find logs for tag [{nicetag}]')
         # It's possible for pre-release tags to end up without a changelog.
         # This condition should not end up failing a CI pipeline.
         return 0
-    logger.info(f'Found changelogs for [{tag}]')
+    logger.info(f'Found changelogs for [{nicetag}] in [{opts.changelog}]')
 
     if opts.remove_urls:
         logger.info('Removing URLs')
@@ -200,14 +267,20 @@ def main(argv):
         name = f'{opts.release_name} {tag}'
 
     logger.info(f'Release Name: [{name}]')
+    gh_repo_path = f'{gh_username}/{gh_repo}'
 
     if opts.dryrun:
         logger.info('Dry-run mode enabled. Not performing a Github release action.')
+        logger.info('Would have made release with the following information:')
+        logger.info(f'gh_repo_path={gh_repo_path}')
+        logger.info(f'tag={tag}')
+        logger.info(f'name={name}')
+        logger.info(f'prerelease={is_prerelease}')
+        logger.info(f'message={target_log}')
         return 0
 
     gh = github.Github(gh_token)
 
-    gh_repo_path = f'{gh_username}/{gh_repo}'
     logger.info(f'Getting github repo for {gh_repo_path}')
     repo = gh.get_repo(gh_repo_path)
 
