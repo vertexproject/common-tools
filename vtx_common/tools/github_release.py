@@ -247,7 +247,7 @@ def main(argv):
         # It's possible for pre-release tags to end up without a changelog.
         # This condition should not end up failing a CI pipeline.
         return 0
-    logger.info(f'Found changelogs for [{nicetag}] in [{opts.changelog}]')
+    logger.info(f'Found changelogs for [{nicetag}] in [{changelog_fp}]')
 
     if opts.remove_urls:
         logger.info('Removing URLs')
