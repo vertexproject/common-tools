@@ -93,7 +93,7 @@ def get_parser():
                       help='Release name to prefix the tag with for the github release.')
     pars.add_argument('--pkg-file', dest=STORM_PKG_FILE, default=None, type=str,
                       help='Storm package file to get minimum storm service from.')
-    pars.add_argument('--pkg-file', dest=STORM_PKG_FILE_PKGNAME, default=False, action='store_true',
+    pars.add_argument('--pkg-file-inject', dest=STORM_PKG_FILE_PKGNAME, default=False, action='store_true',
                       help='inject pkgname derived from a tag into the pkgapath path')
     pars.add_argument('--pkg-type', dest=STORM_PKG_TYPE, default=None, type=str, choices=['Storm Service', 'Power-Up'],
                       help='Storm package file to get minimum storm service from.')
