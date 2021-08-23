@@ -185,6 +185,11 @@ def main(argv):
         is_prerelease = True
 
     defvalu = ''
+    if not opts.dryrun:
+        envd = os.getenv('VTX_COMMON_DRYRUN', None)
+        if envd is not None:
+            logger.info('Setting opts.dryrun to True from environment variable')
+            opts.dryrun = True
     if opts.dryrun:
         defvalu = 'DRYRUN'
 
