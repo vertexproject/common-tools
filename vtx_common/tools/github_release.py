@@ -65,11 +65,11 @@ CFG_OPTS = {
     'storm-pkg-type': {
         'type': 'str',
         'key': STORM_PKG_TYPE,
+        'defval': 'Synapse Power-Up',
     },
     'storm-pkg-type-pkgname': {
         'type': 'bool',
         'key': STORM_PKG_TYPE_PKGNAME,
-        'defval': 'Synapse Power-Up',
     },
     'changelog': {
         'type': 'str',
