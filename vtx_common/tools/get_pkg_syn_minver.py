@@ -22,9 +22,9 @@ def getMessageFromPkg(pkg, mtyp):
         assert len(minv) == 3
         minv = [str(v) for v in minv]
         minv = '.'.join(minv)
-        mesg = f'The {mtyp} requires a minimum Synapse version of {minv} or greater.'
+        mesg = f'{mtyp} requires a minimum Synapse version of {minv} or greater.'
     else:
-        mesg = f'The {mtyp} has no minimum Synapse version specified.'
+        mesg = f'{mtyp} has no minimum Synapse version specified.'
     return mesg
 
 
@@ -45,7 +45,7 @@ def makeargparser():
 
     pars.add_argument('file', type=str,
                       help='Storm package file to extract from.')
-    pars.add_argument('-t', '--type', action='store', choices=['Storm Service', 'Power-Up'], type=str, required=True,
+    pars.add_argument('-t', '--type', action='store', type=str, required=True,
                       help='string type to print')
 
     return pars
