@@ -26,6 +26,7 @@ CHANGELOG = 'changelog'
 CHANGELOG_PKGNAME = 'changelog_pkgname'
 REMOVE_URLS = 'remove_urls'
 RELEASE_NAME = 'release_name'
+RELEASE_NAME_PKGNAME = 'release_name_pkgname'
 STORM_PKG_FILE = 'storm_pkg_file'
 STORM_PKG_TYPE = 'storm_pkg_type'
 STORM_PKG_FILE_PKGNAME = 'storm_pkg_file_pkgname'
@@ -34,6 +35,10 @@ CFG_OPTS = {
     'release-name': {
         'type': 'str',
         'key': RELEASE_NAME,
+    },
+    'release-name-pkgname': {
+        'type': 'bool',
+        'key': RELEASE_NAME_PKGNAME,
     },
     'extra-lines': {
         'type': 'str',
@@ -91,10 +96,12 @@ def get_parser():
                            'Does require the tag variable to be set. This will print the changlog found to stderr.')
     pars.add_argument('--release-name', dest=RELEASE_NAME, default=None, type=str,
                       help='Release name to prefix the tag with for the github release.')
+    pars.add_argument('--release-name-pkgname', dest=RELEASE_NAME_PKGNAME, default=None, action='store_true',
+                      help='inject pkgname derived from a tag into the release name')
     pars.add_argument('--pkg-file', dest=STORM_PKG_FILE, default=None, type=str,
                       help='Storm package file to get minimum storm service from.')
     pars.add_argument('--pkg-file-inject', dest=STORM_PKG_FILE_PKGNAME, default=False, action='store_true',
-                      help='inject pkgname derived from a tag into the pkgapath path')
+                      help='inject pkgname derived from a tag into the pkgpath path')
     pars.add_argument('--pkg-type', dest=STORM_PKG_TYPE, default=None, type=str, choices=['Storm Service', 'Power-Up'],
                       help='Storm package file to get minimum storm service from.')
 
@@ -267,9 +274,13 @@ def main(argv):
     for line in target_log.split('\n'):
         logger.debug(line)
 
-    name = tag
+    name = nicetag
     if opts.release_name:
-        name = f'{opts.release_name} {tag}'
+        name = f'{opts.release_name} {nicetag}'
+    if opts.release_name_pkgname:
+        logger.info(f'Injecting pkgname into [{name}]')
+        name = name.format(pkgname=pkgname)
+        logger.info(f'Name is now [{name}]')
 
     logger.info(f'Release Name: [{name}]')
     gh_repo_path = f'{gh_username}/{gh_repo}'
