@@ -149,7 +149,7 @@ class TestGithubRelease(t_common.TstBase):
             v_ghr.pars_config(opts, fp)
             info = vars(opts)
 
-            self.true(len(info) == 6)
+            self.len(7, info)
             self.eq(info.get('dryrun'), True)
             self.eq(info.get('remove_urls'), False)
             self.eq(info.get('test_int'), 1138)
