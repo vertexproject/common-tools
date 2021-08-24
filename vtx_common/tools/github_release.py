@@ -28,8 +28,9 @@ REMOVE_URLS = 'remove_urls'
 RELEASE_NAME = 'release_name'
 RELEASE_NAME_PKGNAME = 'release_name_pkgname'
 STORM_PKG_FILE = 'storm_pkg_file'
-STORM_PKG_TYPE = 'storm_pkg_type'
 STORM_PKG_FILE_PKGNAME = 'storm_pkg_file_pkgname'
+STORM_PKG_TYPE = 'storm_pkg_type'
+STORM_PKG_TYPE_PKGNAME = 'storm_pkg_type_pkgname'
 
 CFG_OPTS = {
     'release-name': {
@@ -64,6 +65,11 @@ CFG_OPTS = {
     'storm-pkg-type': {
         'type': 'str',
         'key': STORM_PKG_TYPE,
+    },
+    'storm-pkg-type-pkgname': {
+        'type': 'bool',
+        'key': STORM_PKG_TYPE_PKGNAME,
+        'defval': 'Synapse Power-Up',
     },
     'changelog': {
         'type': 'str',
@@ -102,8 +108,10 @@ def get_parser():
                       help='Storm package file to get minimum storm service from.')
     pars.add_argument('--pkg-file-inject', dest=STORM_PKG_FILE_PKGNAME, default=False, action='store_true',
                       help='inject pkgname derived from a tag into the pkgpath path')
-    pars.add_argument('--pkg-type', dest=STORM_PKG_TYPE, default=None, type=str, choices=['Storm Service', 'Power-Up'],
-                      help='Storm package file to get minimum storm service from.')
+    pars.add_argument('--pkg-type', dest=STORM_PKG_TYPE, type=str,
+                      help='minver string name.')
+    pars.add_argument('--pkg-type-pkgname', dest=STORM_PKG_TYPE_PKGNAME, action='store_true',
+                      help='inject the pkgname derviced from a tag into the minver string name')
 
     return pars
 
@@ -223,6 +231,11 @@ def main(argv):
             assert pkgname is not None
             logger.info('Injecting pkgname to pkg path')
             pfile = pfile.format(pkgname=pkgname)
+
+        if opts.storm_pkg_type_pkgname:
+            assert pkgname is not None
+            logger.info('Injecting pkgname to pkg mtype')
+            mtyp = mtyp.format(pkgname=pkgname)
 
         logger.info(f'Getting storm package from {pfile}')
         pkg = v_gpsm.yamlload(pfile)
