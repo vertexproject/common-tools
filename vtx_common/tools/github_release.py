@@ -26,14 +26,20 @@ CHANGELOG = 'changelog'
 CHANGELOG_PKGNAME = 'changelog_pkgname'
 REMOVE_URLS = 'remove_urls'
 RELEASE_NAME = 'release_name'
+RELEASE_NAME_PKGNAME = 'release_name_pkgname'
 STORM_PKG_FILE = 'storm_pkg_file'
-STORM_PKG_TYPE = 'storm_pkg_type'
 STORM_PKG_FILE_PKGNAME = 'storm_pkg_file_pkgname'
+STORM_PKG_TYPE = 'storm_pkg_type'
+STORM_PKG_TYPE_PKGNAME = 'storm_pkg_type_pkgname'
 
 CFG_OPTS = {
     'release-name': {
         'type': 'str',
         'key': RELEASE_NAME,
+    },
+    'release-name-pkgname': {
+        'type': 'bool',
+        'key': RELEASE_NAME_PKGNAME,
     },
     'extra-lines': {
         'type': 'str',
@@ -59,6 +65,11 @@ CFG_OPTS = {
     'storm-pkg-type': {
         'type': 'str',
         'key': STORM_PKG_TYPE,
+    },
+    'storm-pkg-type-pkgname': {
+        'type': 'bool',
+        'key': STORM_PKG_TYPE_PKGNAME,
+        'defval': 'Synapse Power-Up',
     },
     'changelog': {
         'type': 'str',
@@ -91,12 +102,16 @@ def get_parser():
                            'Does require the tag variable to be set. This will print the changlog found to stderr.')
     pars.add_argument('--release-name', dest=RELEASE_NAME, default=None, type=str,
                       help='Release name to prefix the tag with for the github release.')
+    pars.add_argument('--release-name-pkgname', dest=RELEASE_NAME_PKGNAME, default=None, action='store_true',
+                      help='inject pkgname derived from a tag into the release name')
     pars.add_argument('--pkg-file', dest=STORM_PKG_FILE, default=None, type=str,
                       help='Storm package file to get minimum storm service from.')
     pars.add_argument('--pkg-file-inject', dest=STORM_PKG_FILE_PKGNAME, default=False, action='store_true',
-                      help='inject pkgname derived from a tag into the pkgapath path')
-    pars.add_argument('--pkg-type', dest=STORM_PKG_TYPE, default=None, type=str, choices=['Storm Service', 'Power-Up'],
-                      help='Storm package file to get minimum storm service from.')
+                      help='inject pkgname derived from a tag into the pkgpath path')
+    pars.add_argument('--pkg-type', dest=STORM_PKG_TYPE, type=str,
+                      help='minver string name.')
+    pars.add_argument('--pkg-type-pkgname', dest=STORM_PKG_TYPE_PKGNAME, action='store_true',
+                      help='inject the pkgname derviced from a tag into the minver string name')
 
     return pars
 
@@ -217,6 +232,11 @@ def main(argv):
             logger.info('Injecting pkgname to pkg path')
             pfile = pfile.format(pkgname=pkgname)
 
+        if opts.storm_pkg_type_pkgname:
+            assert pkgname is not None
+            logger.info('Injecting pkgname to pkg mtype')
+            mtyp = mtyp.format(pkgname=pkgname)
+
         logger.info(f'Getting storm package from {pfile}')
         pkg = v_gpsm.yamlload(pfile)
         minv_message = v_gpsm.getMessageFromPkg(pkg, mtyp)
@@ -247,7 +267,7 @@ def main(argv):
         # It's possible for pre-release tags to end up without a changelog.
         # This condition should not end up failing a CI pipeline.
         return 0
-    logger.info(f'Found changelogs for [{nicetag}] in [{opts.changelog}]')
+    logger.info(f'Found changelogs for [{nicetag}] in [{changelog_fp}]')
 
     if opts.remove_urls:
         logger.info('Removing URLs')
@@ -267,9 +287,13 @@ def main(argv):
     for line in target_log.split('\n'):
         logger.debug(line)
 
-    name = tag
+    name = nicetag
     if opts.release_name:
-        name = f'{opts.release_name} {tag}'
+        name = f'{opts.release_name} {nicetag}'
+    if opts.release_name_pkgname:
+        logger.info(f'Injecting pkgname into [{name}]')
+        name = name.format(pkgname=pkgname)
+        logger.info(f'Name is now [{name}]')
 
     logger.info(f'Release Name: [{name}]')
     gh_repo_path = f'{gh_username}/{gh_repo}'

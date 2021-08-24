@@ -31,8 +31,8 @@ class TestGpsm(t_common.TstBase):
             self.eq(pkg, def_pkg)
 
             mesg = v_gpsm.getMessageFromPkg(pkg, 'Power-Up')
-            self.eq(mesg, 'The Power-Up requires a minimum Synapse version of 2.48.0 or greater.')
+            self.eq(mesg, 'Power-Up requires a minimum Synapse version of 2.48.0 or greater.')
 
             pkg.pop('synapse_minversion')
             mesg = v_gpsm.getMessageFromPkg(pkg, 'Power-Up')
-            self.eq(mesg, 'The Power-Up has no minimum Synapse version specified.')
+            self.eq(mesg, 'Power-Up has no minimum Synapse version specified.')
