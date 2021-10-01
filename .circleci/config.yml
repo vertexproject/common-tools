@@ -22,7 +22,7 @@ commands:
 
       - restore_cache:
           keys:
-            - v2-venv-{{ .Environment.CIRCLE_STAGE }}-{{ .Branch }}-{{ checksum "setup.py" }}
+            - v3-venv-{{ .Environment.CIRCLE_STAGE }}-{{ .Branch }}-{{ checksum "setup.py" }}
 
       - run:
           name: install requirements
@@ -34,7 +34,7 @@ commands:
       - save_cache:
           paths:
             - ./venv
-          key: v2-venv-{{ .Environment.CIRCLE_STAGE }}-{{ .Branch }}-{{ checksum "setup.py" }}
+          key: v3-venv-{{ .Environment.CIRCLE_STAGE }}-{{ .Branch }}-{{ checksum "setup.py" }}
 
       - run:
           name: syntax
@@ -51,7 +51,7 @@ commands:
 
       - restore_cache:
           keys:
-            - v1-venv-{{ .Environment.CIRCLE_STAGE }}-{{ .Branch }}-{{ checksum "setup.py" }}
+            - v3-venv-{{ .Environment.CIRCLE_STAGE }}-{{ .Branch }}-{{ checksum "setup.py" }}
 
       - run:
           name: install python dependencies
@@ -64,7 +64,7 @@ commands:
       - save_cache:
           paths:
             - ./venv
-          key: v1-venv-{{ .Environment.CIRCLE_STAGE }}-{{ .Branch }}-{{ checksum "setup.py" }}
+          key: v3-venv-{{ .Environment.CIRCLE_STAGE }}-{{ .Branch }}-{{ checksum "setup.py" }}
 
       - run:
           name: verify git tag vs. version
@@ -133,7 +133,7 @@ jobs:
   python37:
     parallelism: 1
     docker:
-      - image: circleci/python:3.7
+      - image: cimg/python:3.7
         environment:
           PYVERS: 3.7
           RUN_SYNTAX: 1
@@ -146,7 +146,7 @@ jobs:
 
   deploy_pypi:
     docker:
-      - image: circleci/python:3.7
+      - image: cimg/python:3.7
         environment:
           PYPI_SMOKE_CODE: import vtx_common; print(vtx_common._verstring)
 
@@ -155,7 +155,7 @@ jobs:
 
   deploy_github_release:
     docker:
-      - image: circleci/python:3.7
+      - image: cimg/python:3.7
     steps:
       - deploy_github_release
 
