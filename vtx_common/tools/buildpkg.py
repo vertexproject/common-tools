@@ -33,8 +33,6 @@ async def buildPkgDocs(opts):
     pkgdef = s_common.yamlload(pkgpath)
     assert pkgdef is not None
 
-    # FIXME This is a repository implicit path convention. That forces
-    # problem for more generic use.
     dirn = os.path.dirname(s_common.genpath(pkgpath))
 
     docsdir = os.path.join(dirn, 'docs')
@@ -47,7 +45,7 @@ async def buildPkgDocs(opts):
     # touch any files we need in order to load a package, due to
     # rstorm needing to load the package using genpkg tool. This
     # does mean that standalone builds of a storm package from this
-    # repo must be done after using this buidpkg tool.
+    # repo must be done after using this buildpkg tool.
     stormpkg_md_present = False
     for dnfo in pkgdef.get('docs', ()):
         fpath = dnfo.get('path')
