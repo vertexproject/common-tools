@@ -137,7 +137,7 @@ async def buildPkgDocs(opts):
 prog = 'vtx_common.tools.buildpkg'
 desc = 'A tool for building storm-package docs.'
 
-async def main(argv, outp=s_output.stdout):
+async def main(argv):
 
     if s_common is None:
         logger.error('The synapse package must be installed to use the {prog} tool.')
