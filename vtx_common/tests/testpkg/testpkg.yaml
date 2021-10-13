@@ -1,0 +1,28 @@
+name: testpkg
+version: 1.2.3
+synapse_minversion: [2, 64, 0]
+
+
+author:
+  url: https://vertex.link
+  name: The Vertex Project, LLC.
+
+desc: The test package does things
+
+docs:
+    - title: Foo
+      path: docs/_build/foo.md
+    - title: Bar
+      path: docs/_build/bar.md
+    - title: Package Documentation
+      path: docs/_build/stormpackage.md
+
+commands:
+  - name: testcmd
+    descr: |
+      A testcmd!
+    cmdargs:
+      - - --debug
+        - default: false
+          action: store_true
+          help: Show verbose debug output.
