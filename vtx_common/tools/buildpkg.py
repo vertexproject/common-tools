@@ -8,12 +8,10 @@ import argparse
 
 try:
     import synapse.common as s_common
-    import synapse.lib.output as s_output
     import synapse.tools.rstorm as s_rstorm
     import synapse.tools.autodoc as s_autodoc
 except ImportError:
     s_common = None
-    s_output = None
     s_rstorm = None
     s_autodoc = None
 
