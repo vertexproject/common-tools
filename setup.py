@@ -57,6 +57,11 @@ setup(
         'pycodestyle>=2.6.0,<3.0.0',
         'pytest-xdist>=1.32.0,<2.0.0',
     ],
+    extras_require={
+        'synapse': [
+            'synapse>=2.64.0,<3.0.0',
+        ]
+    },
 
     classifiers=[
         'Development Status :: 4 - Beta',

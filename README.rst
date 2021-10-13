@@ -41,4 +41,9 @@ include the following:
     This will run ``pycodestyle`` against Python files to be committed. It assumes that there is a ``setup.cfg`` file
     in the root directory of the repo.
 
+``vtx_common.tools.buildpkg``
+    This will execute rstorm files for a given storm package file following Vertex conventions, in order to generate
+    markdown documentation for the package that can be viewed in the Synapse UI. This requires having the Synapse
+    python package available, as well as ``pandoc``. Pandoc should be ve`rs`ion ``2.14.0.1`` or greater.
+
 This package also installs ``bump2version``, ``pytest``, ``pytest-cov`` and ``pytest-xdist`` packages.
