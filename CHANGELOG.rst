@@ -2,6 +2,18 @@
 Vertex Common Tools Changelog
 *****************************
 
+
+v0.1.14 - 2021-10-14
+====================
+
+Features and Enhancements
+-------------------------
+
+- Add ``vtx_common.tools.buildpkg`` as a convenience script for building Storm
+  packages with rstorm based docs in them. This requires pandoc for execution
+  and the synaspe package installed as well.
+
+
 v0.1.8 - 2021-08-11
 ===================
 
