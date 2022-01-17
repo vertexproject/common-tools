@@ -3,6 +3,16 @@ Vertex Common Tools Changelog
 *****************************
 
 
+v0.1.15 - 2022-01-17
+====================
+
+Features and Enhancements
+-------------------------
+
+- Update ``PyYAML``, ``pytest``, ``pytest-cov``, and ``pytest-xdist``
+  libraries to be in line with Synapse requirements.
+
+
 v0.1.14 - 2021-10-14
 ====================
 
