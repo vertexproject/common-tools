@@ -49,13 +49,13 @@ setup(
 
     install_requires=[
         'PyGithub==1.53',
-        'PyYAML>=5.4,<6.0',
+        'PyYAML>=5.4,<6.1.0',
         'bump2version==1.0.1',
-        'pytest>=5.0.0,<6.0.0',
+        'pytest>=6.2.5,<7.0.0',
         'autopep8>=1.5.3,<2.0.0',
-        'pytest-cov>=2.9.0,<3.0.0',
+        'pytest-cov>=3.0.0,<4.0.0',
         'pycodestyle>=2.6.0,<3.0.0',
-        'pytest-xdist>=1.32.0,<2.0.0',
+        'pytest-xdist>=2.4.0,<3.0.0',
     ],
     extras_require={
         'synapse': [
