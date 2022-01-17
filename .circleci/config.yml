@@ -36,6 +36,7 @@ commands:
           command: |
             python3 -m venv --copies venv
             . venv/bin/activate
+            python -m pip install -U wheel pip
             python -m pip install -U -r requirements.txt
 
       - save_cache:
