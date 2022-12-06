@@ -51,15 +51,15 @@ setup(
         'PyGithub==1.53',
         'PyYAML>=5.4,<6.1.0',
         'bump2version==1.0.1',
-        'pytest>=6.2.5,<7.0.0',
+        'pytest>=7.2.0,<8.0.0',
         'autopep8>=1.5.3,<2.0.0',
-        'pytest-cov>=3.0.0,<4.0.0',
+        'pytest-cov>=4.0.0,<5.0.0',
         'pycodestyle>=2.6.0,<3.0.0',
-        'pytest-xdist>=2.4.0,<3.0.0',
+        'pytest-xdist>=3.0.2,<4.0.0',
     ],
     extras_require={
         'synapse': [
-            'synapse>=2.64.0,<3.0.0',
+            'synapse>=2.115.1,<3.0.0',
         ]
     },
 
