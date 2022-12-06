@@ -23,14 +23,13 @@ commands:
       - run:
           name: install pandoc
           command: |
-            env
             curl -L -o pandoc-amd64.deb https://github.com/jgm/pandoc/releases/download/2.14.0.1/pandoc-2.14.0.1-1-amd64.deb
             sha256sum --check pandoc.deb.sha256
             sudo dpkg -i pandoc-amd64.deb
 
       - restore_cache:
           keys:
-            - v3-venv-{{ .Environment.CIRCLE_STAGE }}-{{ .Branch }}-{{ checksum "setup.py" }}
+            - v3-venv-{{ .Environment.CIRCLE_JOB }}-{{ .Branch }}-{{ checksum "setup.py" }}
 
       - run:
           name: install requirements
@@ -43,7 +42,7 @@ commands:
       - save_cache:
           paths:
             - ./venv
-          key: v3-venv-{{ .Environment.CIRCLE_STAGE }}-{{ .Branch }}-{{ checksum "setup.py" }}
+          key: v3-venv-{{ .Environment.CIRCLE_JOB }}-{{ .Branch }}-{{ checksum "setup.py" }}
 
       - run:
           name: syntax
@@ -60,7 +59,7 @@ commands:
 
       - restore_cache:
           keys:
-            - v3-venv-{{ .Environment.CIRCLE_STAGE }}-{{ .Branch }}-{{ checksum "setup.py" }}
+            - v3-venv-{{ .Environment.CIRCLE_JOB }}-{{ .Branch }}-{{ checksum "setup.py" }}
 
       - run:
           name: install python dependencies
@@ -73,7 +72,7 @@ commands:
       - save_cache:
           paths:
             - ./venv
-          key: v3-venv-{{ .Environment.CIRCLE_STAGE }}-{{ .Branch }}-{{ checksum "setup.py" }}
+          key: v3-venv-{{ .Environment.CIRCLE_JOB }}-{{ .Branch }}-{{ checksum "setup.py" }}
 
       - run:
           name: verify git tag vs. version
@@ -121,7 +120,7 @@ commands:
 
       - restore_cache:
           keys:
-            - v3-venv-{{ .Environment.CIRCLE_STAGE }}-{{ .Branch }}-{{ checksum "setup.py" }}
+            - v3-venv-{{ .Environment.CIRCLE_JOB }}-{{ .Branch }}-{{ checksum "setup.py" }}
 
       - run:
           name: install python dependencies
@@ -134,7 +133,7 @@ commands:
       - save_cache:
           paths:
             - ./venv
-          key: v3-venv-{{ .Environment.CIRCLE_STAGE }}-{{ .Branch }}-{{ checksum "setup.py" }}
+          key: v3-venv-{{ .Environment.CIRCLE_JOB }}-{{ .Branch }}-{{ checksum "setup.py" }}
 
       - run:
           name: verify git tag vs. version
