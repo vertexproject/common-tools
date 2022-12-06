@@ -2,6 +2,14 @@
 Vertex Common Tools Changelog
 *****************************
 
+v0.1.17 - 2022-12-05
+====================
+
+Bugfixes
+--------
+- Update the requirements for ``pytest`, ``pytest-cov`` and ``pytest-xdist``
+  in ``setup.py``.
+
 v0.1.16 - 2022-12-01
 ====================
 
