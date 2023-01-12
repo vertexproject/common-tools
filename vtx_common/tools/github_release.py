@@ -10,6 +10,7 @@ from typing import List, AnyStr
 
 import github
 
+import vtx_common.utils as v_utils
 import vtx_common.tools.get_pkg_syn_minver as v_gpsm
 
 
@@ -31,6 +32,9 @@ STORM_PKG_FILE = 'storm_pkg_file'
 STORM_PKG_FILE_PKGNAME = 'storm_pkg_file_pkgname'
 STORM_PKG_TYPE = 'storm_pkg_type'
 STORM_PKG_TYPE_PKGNAME = 'storm_pkg_type_pkgname'
+EMAIL_DEST = 'mail_dest'
+EMAIL_DOMAIN = 'mail_domain'
+EMAIL_SENDER = 'mail_sender'
 
 CFG_OPTS = {
     'release-name': {
@@ -79,6 +83,18 @@ CFG_OPTS = {
         'type': 'bool',
         'key': CHANGELOG_PKGNAME,
     },
+    'mail-dest': {
+        'type': 'str',
+        'key': EMAIL_DEST
+    },
+    'mail-sender': {
+        'type': 'str',
+        'key': EMAIL_SENDER,
+    },
+    'mail-domain': {
+        'type': 'str',
+        'key': EMAIL_DOMAIN
+    }
 }
 
 def get_parser():
@@ -112,6 +128,14 @@ def get_parser():
                       help='minver string name.')
     pars.add_argument('--pkg-type-pkgname', dest=STORM_PKG_TYPE_PKGNAME, action='store_true',
                       help='inject the pkgname derviced from a tag into the minver string name')
+    pars.add_argument('--email-dest', dest=EMAIL_DEST, action='store', type=str,
+                      help='Post the release log to this email via mailgun POST api.')
+    pars.add_argument('--email-domain', dest=EMAIL_DOMAIN, action='store', type=str,
+                      help='Use the specified domain with the mailgun API')
+    pars.add_argument('--email-sender', dest=EMAIL_SENDER, action='store', type=str,
+                      help='Email sender address')
+    pars.add_argument('--email-token', dest='mailtokenvar', default='MAILGUN_TOKEN', type=str,
+                      help='Environment variable to pull the mailgun token from.')
 
     return pars
 
@@ -221,6 +245,15 @@ def main(argv):
         logger.error('No github repo found')
         return 1
 
+    mail_token = os.getenv(opts.mailtokenvar, defvalu)
+    if opts.mail_dest and not mail_token:
+        logger.error('No mail token found with email_dest set.')
+        return 1
+
+    if opts.mail_dest and not opts.mail_sender:
+        logger.error('No mail sender set')
+        return 1
+
     extra_parts = []
 
     pfile = opts.storm_pkg_file
@@ -298,14 +331,27 @@ def main(argv):
     logger.info(f'Release Name: [{name}]')
     gh_repo_path = f'{gh_username}/{gh_repo}'
 
+    # convert target log full text for mailgun
+    _mailsepr = '=' * len(name)
+    mail_text_log = f'{name}\n{_mailsepr}\n\n{target_log}'
+    mail_subject = f'Vertex Release: {name}'
+
     if opts.dryrun:
-        logger.info('Dry-run mode enabled. Not performing a Github release action.')
+        logger.info('Dry-run mode enabled. Not performing a Github release action or email.')
         logger.info('Would have made release with the following information:')
-        logger.info(f'gh_repo_path={gh_repo_path}')
+        # logger.info(f'gh_repo_path={gh_repo_path}')
         logger.info(f'tag={tag}')
         logger.info(f'name={name}')
         logger.info(f'prerelease={is_prerelease}')
         logger.info(f'message={target_log}')
+
+        logger.info(f'mail_dest={opts.mail_dest}')
+        logger.info(f'mail_domain={opts.mail_domain}')
+        logger.info(f'mail_sender={opts.mail_sender}')
+        logger.info(f'mail_subject={mail_subject}')
+        logger.info(f'mail_text_log={mail_text_log}')
+
+
         return 0
 
     gh = github.Github(gh_token)
@@ -322,6 +368,20 @@ def main(argv):
                                       )
     logger.info(f'Made github release {release}')
 
+    if opts.mail_dest:
+        logger.info('Posting release to mailgun')
+        ret = v_utils.sendMailMessage(dest=[opts.mail_dest],
+                                      sender=opts.mail_sender,
+                                      text=mail_text_log,
+                                      subject=mail_subject,
+                                      domain=opts.mail_domain,
+                                      token=mail_token,
+                                      )
+        if not ret:
+            logger.info('Failed to send message')
+            return 1
+    else:
+        logger.info('Skipping mail release')
     return 0
 
 if __name__ == '__main__':
