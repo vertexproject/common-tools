@@ -351,7 +351,6 @@ def main(argv):
         logger.info(f'mail_subject={mail_subject}')
         logger.info(f'mail_text_log={mail_text_log}')
 
-
         return 0
 
     gh = github.Github(gh_token)
