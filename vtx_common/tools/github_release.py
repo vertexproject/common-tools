@@ -334,6 +334,7 @@ def main(argv):
     # convert target log full text for mailgun
     _mailsepr = '=' * len(name)
     mail_text_log = f'{name}\n{_mailsepr}\n\n{target_log}'
+    # TODO - This is ReStructuredText. Render this to HTML with pandoc.
     mail_subject = f'Vertex Release: {name}'
 
     if opts.dryrun:
