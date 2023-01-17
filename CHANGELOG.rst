@@ -2,6 +2,14 @@
 Vertex Common Tools Changelog
 *****************************
 
+v0.1.18 - 2023-01-17
+====================
+
+Features and Enhancements
+-------------------------
+- Add optional mailgun support for emailing raw RST changelogs in the
+  ``vtx_common.tools.github_release`` tool.
+
 v0.1.17 - 2022-12-05
 ====================
 
