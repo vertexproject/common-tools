@@ -2,6 +2,13 @@
 Vertex Common Tools Changelog
 *****************************
 
+v0.1.20 - 2023-02-08
+====================
+
+Features and Enhancements
+-------------------------
+- Fix wheel builds.
+
 v0.1.19 - 2023-02-08
 ====================
 
