@@ -92,7 +92,7 @@ commands:
           name: create packages
           command: |
             . venv/bin/activate
-            python setup.py bdist_wheel --python-tag=py37
+            python setup.py bdist_wheel --python-tag=$PYTHONTAG
 
       - run:
           name: smoke packages
@@ -154,7 +154,7 @@ commands:
           command: |
             . venv/bin/activate
             python setup.py sdist
-            python setup.py bdist_wheel --python-tag=py38
+            python setup.py bdist_wheel --python-tag=$PYTHON_TAG
 
       - run:
           name: smoke packages
@@ -246,6 +246,7 @@ jobs:
       - image: cimg/python:3.7
         environment:
           PYPI_SMOKE_CODE: import vtx_common; print(vtx_common._verstring)
+          PYTHON_TAG: py37
 
     steps:
       - deploy_to_pypi_nosdist
@@ -255,6 +256,7 @@ jobs:
       - image: cimg/python:3.8
         environment:
           PYPI_SMOKE_CODE: import vtx_common; print(vtx_common._verstring)
+          PYTHON_TAG: py38
 
     steps:
       - deploy_to_pypi_nosdist
@@ -264,6 +266,7 @@ jobs:
       - image: cimg/python:3.10
         environment:
           PYPI_SMOKE_CODE: import vtx_common; print(vtx_common._verstring)
+          PYTHON_TAG: py310
 
     steps:
       - deploy_to_pypi
