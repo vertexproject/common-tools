@@ -2,6 +2,13 @@
 Vertex Common Tools Changelog
 *****************************
 
+v0.1.19 - 2023-02-08
+====================
+
+Features and Enhancements
+-------------------------
+- Add Python 3.10 support.
+
 v0.1.18 - 2023-01-17
 ====================
 
