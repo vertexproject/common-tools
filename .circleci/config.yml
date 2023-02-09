@@ -92,7 +92,7 @@ commands:
           name: create packages
           command: |
             . venv/bin/activate
-            python setup.py bdist_wheel --python-tag=$PYTHONTAG
+            python setup.py bdist_wheel --python-tag=$PYTHON_TAG
 
       - run:
           name: smoke packages
