@@ -241,6 +241,20 @@ jobs:
     steps:
       - test_steps_python
 
+  python311:
+    parallelism: 1
+    docker:
+      - image: cimg/python:3.11
+        environment:
+          PYVERS: 3.11
+          RUN_SYNTAX: 1
+          COVERAGE_ARGS: --cov vtx_common --no-cov-on-fail
+
+    working_directory: ~/repo
+
+    steps:
+      - test_steps_python
+
   deploy_pypi_37:
     docker:
       - image: cimg/python:3.7
@@ -261,7 +275,7 @@ jobs:
     steps:
       - deploy_to_pypi_nosdist
 
-  deploy_pypi:
+  deploy_pypi_310:
     docker:
       - image: cimg/python:3.10
         environment:
@@ -269,11 +283,21 @@ jobs:
           PYTHON_TAG: py310
 
     steps:
+      - deploy_to_pypi_nosdist
+
+  deploy_pypi:
+    docker:
+      - image: cimg/python:3.11
+        environment:
+          PYPI_SMOKE_CODE: import vtx_common; print(vtx_common._verstring)
+          PYTHON_TAG: py311
+
+    steps:
       - deploy_to_pypi
 
   deploy_github_release:
     docker:
-      - image: cimg/python:3.7
+      - image: cimg/python:3.10
     steps:
       - deploy_github_release
 
@@ -302,11 +326,19 @@ workflows:
             branches:
               only: /.*/
 
+      - python311:
+          filters:
+            tags:
+              only: /.*/
+            branches:
+              only: /.*/
+
       - deploy_pypi_37:
           requires:
             - python37
             - python38
             - python310
+            - python311
           context: PublicPypiAccess
           filters:
             tags:
@@ -319,6 +351,20 @@ workflows:
             - python37
             - python38
             - python310
+            - python311
+          context: PublicPypiAccess
+          filters:
+            tags:
+              only: /^v[0-9]\.[0-9]+\.[0-9]+((a|b|rc)[0-9]*)?$/
+            branches:
+              ignore: /.*/
+
+      - deploy_pypi_310:
+          requires:
+            - python37
+            - python38
+            - python310
+            - python311
           context: PublicPypiAccess
           filters:
             tags:
@@ -330,6 +376,8 @@ workflows:
           requires:
             - python37
             - python38
+            - python310
+            - python311
           context: PublicPypiAccess
           filters:
             tags:
@@ -342,6 +390,7 @@ workflows:
             - deploy_pypi
             - deploy_pypi_37
             - deploy_pypi_38
+            - deploy_pypi_310
           context: GithubMachine
           filters:
             tags:
