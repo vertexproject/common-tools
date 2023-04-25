@@ -7,10 +7,12 @@ import logging
 import argparse
 
 try:
+    import regex as re
     import synapse.common as s_common
     import synapse.tools.rstorm as s_rstorm
     import synapse.tools.autodoc as s_autodoc
 except ImportError:
+    import re
     s_common = None
     s_rstorm = None
     s_autodoc = None
@@ -18,6 +20,9 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 logging.getLogger('vcr').setLevel(logging.WARNING)
+
+# see https://www.sphinx-doc.org/en/master/usage/restructuredtext/field-lists.html#file-wide-metadata
+re_sphinx_metadata_fields = re.compile(r'^:(tocdepth|nocomments|orphan|nosearch):( \w+)?\n\n', flags=re.MULTILINE)
 
 def hasPandoc():
     if os.system('pandoc --version') == 0:
@@ -90,6 +95,10 @@ async def buildPkgDocs(opts):
 
         # Remove highglight:: none directives
         buf = buf.replace('.. highlight:: none\n', '')
+
+        # Remove sphinx metadata fields
+        buf = re_sphinx_metadata_fields.sub('', buf)
+
         lines = buf.splitlines(keepends=True)
 
         # Remove lines which start with explicit sphinx rst targets
