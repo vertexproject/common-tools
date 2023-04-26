@@ -32,3 +32,7 @@ class TestBuildpkg(t_common.TstBase):
             efiles.add(bname.rsplit('.', 1)[0] + '.rst')
         builddir = os.path.join(testpkgdir, 'docs', '_build')
         self.eq(efiles, set(os.listdir(builddir)))
+
+        text = s_common.getbytes(os.path.join(builddir, 'bar.md')).decode()
+        self.notin(':orphan:', text)
+        self.notin(':tocdepth:', text)
