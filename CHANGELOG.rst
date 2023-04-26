@@ -2,6 +2,13 @@
 Vertex Common Tools Changelog
 *****************************
 
+v0.1.22 - 2023-04-26
+====================
+
+Features and Enhancements
+-------------------------
+- Update ``vtx_common.tools.buildpkg`` tool to remove Sphinx metadata fields.
+
 v0.1.21 - 2023-02-09
 ====================
 
