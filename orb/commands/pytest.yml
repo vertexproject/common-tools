@@ -26,10 +26,15 @@ steps:
       condition: << parameters.use_venv >>
       steps:
         - run:
-            name: Activate virtualenv
+            name: Run pytest
             command: |
               . venv/bin/activate
-  - run:
-      name: Pytest
-      command: |
-          python3 -m pytest << parameters.args >> << parameters.extra_args >> << parameters.coverage_args >> << parameters.tests >>
+              python3 -m pytest << parameters.args >> << parameters.extra_args >> << parameters.coverage_args >> << parameters.tests >>
+
+  - unless:
+      condition: << parameters.use_venv >>
+      steps:
+        - run:
+            name: Run pytest
+            command: |
+                python3 -m pytest << parameters.args >> << parameters.extra_args >> << parameters.coverage_args >> << parameters.tests >>

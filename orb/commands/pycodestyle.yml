@@ -21,11 +21,15 @@ steps:
       condition: << parameters.use_venv >>
       steps:
         - run:
-            name: Activate virtualenv
+            name: Run pycodestyle
             command: |
               . venv/bin/activate
+              pycodestyle << parameters.args >> << parameters.extra_args >> << parameters.directories >>
 
-  - run:
-      name: Run pycodestyle
-      command: |
-        python -m pycodestyle << parameters.args >> << parameters.extra_args >> << parameters.directories >>
+  - unless:
+      condition: << parameters.use_env >>
+      steps:
+        - run:
+            name: Run pycodestyle
+            command: |
+              python -m pycodestyle << parameters.args >> << parameters.extra_args >> << parameters.directories >>

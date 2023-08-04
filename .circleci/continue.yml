@@ -112,7 +112,7 @@ filters:
 workflows:
   version: 2
 
-  orb:
+  publish-orb:
     # This workflow is exclusively for packing and publishing the orb. In the
     # orb template, there's a test step too but since we're using the orb for
     # the vtx_common workflow below, that's probably better than unit tests.

@@ -21,24 +21,39 @@ parameters:
     type: string
     description: List of pip packages to install.
 
+  use_venv:
+    type: boolean
+    default: true
+
 steps:
   - when:
-      condition: << parameters.cache >>
+      condition: << parameters.use_venv >>
       steps:
-        - restore_cache:
-            key: &pip-install-cache-key v1-venv-{{ .Branch }}-<< parameters.packages >>
+        - when:
+            condition: << parameters.cache >>
+            steps:
+              - restore_cache:
+                  key: &pip-install-cache-key v1-venv-{{ .Branch }}-<< parameters.packages >>
 
-  - run:
-      name: Install python dependencies into virtual environment
-      command: |
-        python3 -m venv --copies venv
-        . venv/bin/activate
-        python3 -m pip install << parameters.args >> << parameters.extra_args >>  << parameters.packages >>
+        - run:
+            name: Install python dependencies into virtual environment
+            command: |
+              python3 -m venv --copies venv
+              . venv/bin/activate
+              python3 -m pip install << parameters.args >> << parameters.extra_args >>  << parameters.packages >>
 
-  - when:
-      condition: << parameters.cache >>
+        - when:
+            condition: << parameters.cache >>
+            steps:
+              - save_cache:
+                  paths:
+                    - ./venv
+                  key: *pip-install-cache-key
+
+  - unless:
+      condition: << parameters.use_venv >>
       steps:
-        - save_cache:
-            paths:
-              - ./venv
-            key: *pip-install-cache-key
+        - run:
+            name: Install python dependencies
+            command: |
+              python3 -m pip install << parameters.args >> << parameters.extra_args >>  << parameters.packages >>
