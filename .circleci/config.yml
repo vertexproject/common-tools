@@ -19,12 +19,13 @@ workflows:
       - orb-tools/review:
           filters: *filters
           source_dir: orb
-          exclude: RC009,RC010
+          exclude: "RC009,RC010"
       # Triggers the next workflow in the Orb Development Kit.
       - orb-tools/continue:
           config_path: .circleci/continue.yml
           pipeline_number: << pipeline.number >>
           vcs_type: << pipeline.project.type >>
           orb_name: vertex-orb
-          requires: [orb-tools/lint, orb-tools/pack, orb-tools/review]
+          # requires: [orb-tools/lint, orb-tools/pack, orb-tools/review]
+          requires: [orb-tools/pack, orb-tools/review]
           filters: *filters

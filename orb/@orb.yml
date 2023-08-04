@@ -1,7 +1,8 @@
 version: 2.1
 
 description: >
-  This orb is used for building and testing of Synapse powerups.
+  This orb is used for building and testing of Synapse powerups. Enables simple
+  testing of powerups with min/latest Synapse version.
 
 # This information will be displayed in the orb registry and is not mandatory.
 display:
