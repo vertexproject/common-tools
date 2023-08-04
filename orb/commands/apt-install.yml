@@ -1,0 +1,34 @@
+description: >
+  This command installs apt packages.
+
+parameters:
+  update:
+    type: boolean
+    default: true
+    description: Run apt-get update before installing.
+
+  args:
+    type: string
+    default: "-y"
+
+  extra_args:
+    type: string
+    default: ""
+
+  packages:
+    type: string
+    description: List of apt packages to install.
+
+steps:
+  - when:
+      condition: << parameters.update >>
+      steps:
+        - run:
+            name: apt-get update
+            command: |
+              sudo apt-get update
+
+  - run:
+      name: apt-get install
+      command: |
+        sudo apt-get install << parameters.args >> << parameters.extra_args >> << parameters.packages >>

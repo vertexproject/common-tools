@@ -1,0 +1,4 @@
+description: The default executor for vertex-orb.
+
+docker:
+  - image: cimg/python:3.11

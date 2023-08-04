@@ -1,0 +1,150 @@
+version: 2.1
+
+orbs:
+  orb-tools: circleci/orb-tools@12.0.4
+  # The orb definition is intentionally not included here. It will be injected
+  # into the pipeline.
+  vertex-orb: {}
+
+jobs:
+  test-python:
+    parallelism: 1
+    executor: vertex-orb/default
+
+    working_directory: ~/repo
+
+    steps:
+      - checkout
+
+      - vertex-orb/install-pandoc
+
+      - vertex-orb/pip-install:
+          packages: wheel pip -r requirements.txt
+
+      - vertex-orb/pycodestyle:
+          directories: vtx_common
+          args: --exclude venv
+
+      - vertex-orb/pytest:
+          coverage_args: --cov vtx_common --no-cov-on-fail
+
+  deploy-pypi:
+    executor: vertex-orb/default
+    steps:
+      - checkout
+
+      - vertex-orb/pip-install:
+          packages: wheel pip twine -r requirements.txt
+
+      - run:
+          name: Create pypi packages
+          command: |
+            . venv/bin/activate
+            python setup.py sdist
+            python setup.py bdist_wheel --python-tag=py311
+
+      - run:
+          name: Verify git tag vs. version
+          command: |
+            env | grep -i circle
+            . venv/bin/activate
+            python setup.py verify
+
+      - run:
+          name: Smoke test pypi packages
+          command: |
+            mkdir -p /tmp/wheeltest
+            mkdir -p /tmp/sdisttest
+            python3 -m venv /tmp/wheeltest/venv
+            python3 -m venv /tmp/sdisttest/venv
+            cp dist/*.whl /tmp/wheeltest
+            cp dist/*.tar.gz /tmp/sdisttest
+            cd /tmp/wheeltest
+            . ./venv/bin/activate
+            python3 -m pip install -U wheel pip
+            python3 -m pip install *.whl
+            python3 -c "import vtx_common; print(vtx_common._verstring)"
+            deactivate
+            cd /tmp/sdisttest
+            . ./venv/bin/activate
+            python3 -m pip install -U wheel pip
+            python3 -m pip install *.tar.gz
+            python3 -c "import vtx_common; print(vtx_common._verstring)"
+            deactivate
+
+      - run:
+          name: upload to pypi
+          command: |
+            echo -e "[pypi]" >> ~/.pypirc
+            echo -e "username = $PYPI_USERNAME" >> ~/.pypirc
+            echo -e "password = $PYPI_PASSWORD" >> ~/.pypirc
+            . venv/bin/activate
+            twine upload dist/*
+
+  deploy-github-release:
+    executor: vertex-orb/default
+    steps:
+      - vertex-orb/pip-install:
+          packages: -r requirements.txt
+      - run:
+          name: Create github release
+          command: python3 -m vtx_common.tools.github_release
+
+filters:
+  test_filter: &vtx_test_filter
+    tags:
+      only: /.*/
+    branches:
+      only: /.*/
+
+  deploy_filter: &vtx_deploy_filter
+    tags:
+      only: /^v[0-9]\.[0-9]+\.[0-9]+((a|b|rc)[0-9]*)?$/
+    branches:
+      ignore: /.*/
+
+  release-filters: &orb-release-filters
+    branches:
+      ignore: /.*/
+    tags:
+      only: /^v[0-9]+\.[0-9]+\.[0-9]+$/
+
+workflows:
+  version: 2
+
+  orb:
+    # This workflow is exclusively for packing and publishing the orb. In the
+    # orb template, there's a test step too but since we're using the orb for
+    # the vtx_common workflow below, that's probably better than unit tests.
+    jobs:
+      # The orb must be re-packed for publishing, and saved to the workspace.
+      - orb-tools/pack:
+          filters: *orb-release-filters
+          source_dir: orb
+      - orb-tools/publish:
+          orb_name: vertexproject/vertex-orb
+          vcs_type: << pipeline.project.type >>
+          pub_type: production
+          # Ensure this job requires all test jobs and the pack job.
+          requires:
+            - orb-tools/pack
+          context: orb-publishing
+          filters: *orb-release-filters
+
+  vtx_common:
+    # This workflow is for the python code in the vtx_common directory.
+    jobs:
+      - test-python:
+          filters: *vtx_test_filter
+
+      - deploy-pypi:
+          requires:
+            - test-python
+          context: PublicPypiAccess
+          filters: *vtx_deploy_filter
+
+      - deploy-github-release:
+          requires:
+            - deploy-pypi
+          context: GithubMachine
+          filters: *vtx_deploy_filter

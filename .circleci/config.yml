@@ -1,212 +1,29 @@
-# Python CircleCI 2.0 configuration file
-#
-# Check https://circleci.com/docs/2.0/language-python/ for more details
-#
 version: 2.1
+setup: true
+orbs:
+  orb-tools: circleci/orb-tools@12.0.4
 
-executors:
-  cimg-python-311:
-    docker:
-      - image: cimg/python:3.11
-
-commands:
-  pytest:
-    description: Execute unit tests with pytest
-    parameters:
-      args:
-        type: string
-        default: "-v -s -rs --durations 6 --maxfail 6 -p no:logging"
-      extra_args:
-        type: string
-        default: ""
-      coverage_args:
-        type: string
-        default: ""
-    steps:
-      - run:
-          name: Pytest
-          command: |
-            . venv/bin/activate
-             python3 -m pytest << parameters.args >> << parameters.extra_args >> << parameters.coverage_args >>
-
-  install-pandoc:
-    description: Install pandoc
-    steps:
-      - run:
-          name: Install pandoc
-          command: |
-            curl -L -o pandoc-amd64.deb https://github.com/jgm/pandoc/releases/download/2.14.0.1/pandoc-2.14.0.1-1-amd64.deb
-            sha256sum --check pandoc.deb.sha256
-            sudo dpkg -i pandoc-amd64.deb
-
-  pip-install:
-    description: Install pip packages
-    parameters:
-      args:
-        type: string
-        default: "-U"
-      extra_args:
-        type: string
-        default: ""
-      cache:
-        type: boolean
-        default: true
-      packages:
-        type: string
-    steps:
-      - when:
-          condition: << parameters.cache >>
-          steps:
-            - restore_cache:
-                key: &pip-install-cache-key v1-venv-{{ .Branch }}-<< parameters.packages >>
-
-      - run:
-          name: Install python dependencies into virtual environment
-          command: |
-            python3 -m venv --copies venv
-            . venv/bin/activate
-            python3 -m pip install << parameters.args >> << parameters.extra_args >>  << parameters.packages >>
-
-      - when:
-          condition: << parameters.cache >>
-          steps:
-            - save_cache:
-                paths:
-                  - ./venv
-                key: *pip-install-cache-key
-
-  pycodestyle:
-    description: Run pycodestyle on specified directories.
-    parameters:
-      args:
-        type: string
-        default: ""
-      extra_args:
-        type: string
-        default: ""
-      directories:
-        type: string
-        default: ""
-    steps:
-      - run:
-          name: Run pycodestyle
-          command: |
-            . venv/bin/activate
-            pycodestyle << parameters.args >> << parameters.extra_args >> << parameters.directories >>
-
-jobs:
-  pytest:
-    parallelism: 1
-    executor: cimg-python-311
-
-    working_directory: ~/repo
-
-    steps:
-      - checkout
-
-      - install-pandoc
-
-      - pip-install:
-          packages: wheel pip -r requirements.txt
-
-      - pycodestyle:
-          directories: vtx_common
-          args: --exclude venv
-
-      - pytest:
-          coverage_args: --cov vtx_common --no-cov-on-fail
-
-  deploy_pypi:
-    executor: cimg-python-311
-    steps:
-      - checkout
-
-      - pip-install:
-          packages: wheel pip twine -r requirements.txt
-
-      - run:
-          name: Create pypi packages
-          command: |
-            . venv/bin/activate
-            python setup.py sdist
-            python setup.py bdist_wheel --python-tag=py311
-
-      - run:
-          name: Verify git tag vs. version
-          command: |
-            env | grep -i circle
-            . venv/bin/activate
-            python setup.py verify
-
-      - run:
-          name: Smoke test pypi packages
-          command: |
-            mkdir -p /tmp/wheeltest
-            mkdir -p /tmp/sdisttest
-            python3 -m venv /tmp/wheeltest/venv
-            python3 -m venv /tmp/sdisttest/venv
-            cp dist/*.whl /tmp/wheeltest
-            cp dist/*.tar.gz /tmp/sdisttest
-            cd /tmp/wheeltest
-            . ./venv/bin/activate
-            python3 -m pip install -U wheel pip
-            python3 -m pip install *.whl
-            python3 -c "import vtx_common; print(vtx_common._verstring)"
-            deactivate
-            cd /tmp/sdisttest
-            . ./venv/bin/activate
-            python3 -m pip install -U wheel pip
-            python3 -m pip install *.tar.gz
-            python3 -c "import vtx_common; print(vtx_common._verstring)"
-            deactivate
-
-      - run:
-          name: upload to pypi
-          command: |
-            echo -e "[pypi]" >> ~/.pypirc
-            echo -e "username = $PYPI_USERNAME" >> ~/.pypirc
-            echo -e "password = $PYPI_PASSWORD" >> ~/.pypirc
-            . venv/bin/activate
-            twine upload dist/*
-
-  deploy_github_release:
-    docker:
-      - image: cimg/python:3.11
-    steps:
-      - pip-install:
-          packages: -r requirements.txt
-      - run:
-          name: Create github release
-          command: python3 -m vtx_common.tools.github_release
-
-filters:
-  test_filter: &test_filter
-    tags:
-      only: /.*/
-    branches:
-      only: /.*/
-
-  deploy_filter: &deploy_filter
-    tags:
-      only: /^v[0-9]\.[0-9]+\.[0-9]+((a|b|rc)[0-9]*)?$/
-    branches:
-      ignore: /.*/
+filters: &filters
+  tags:
+    only: /.*/
 
 workflows:
-  version: 2
-  run_tests:
+  lint-pack:
     jobs:
-      - pytest:
-          filters: *test_filter
-
-      - deploy_pypi:
-          requires:
-            - pytest
-          context: PublicPypiAccess
-          filters: *deploy_filter
-
-      - deploy_github_release:
-          requires:
-            - deploy_pypi
-          context: GithubMachine
-          filters: *deploy_filter
+      - orb-tools/lint:
+          filters: *filters
+          source_dir: orb
+      - orb-tools/pack:
+          filters: *filters
+          source_dir: orb
+      - orb-tools/review:
+          filters: *filters
+          source_dir: orb
+      # Triggers the next workflow in the Orb Development Kit.
+      - orb-tools/continue:
+          config_path: .circleci/continue.yml
+          pipeline_number: << pipeline.number >>
+          vcs_type: << pipeline.project.type >>
+          orb_name: vertex-orb
+          requires: [orb-tools/lint, orb-tools/pack, orb-tools/review]
+          filters: *filters

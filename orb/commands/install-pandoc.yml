@@ -1,0 +1,28 @@
+description: Download, verify, and install pandoc
+
+parameters:
+  outfile:
+    type: string
+    default: "pandoc-amd64.deb"
+
+  url:
+    type: string
+    default: "https://github.com/jgm/pandoc/releases/download/2.14.0.1/pandoc-2.14.0.1-1-amd64.deb"
+
+  sha256_checksum:
+    type: string
+    default: "15e0f261e9e765582bc8e7fdb4e62f6ab35eacf14030b8cca23ea31b0ccc0eed  pandoc-amd64.deb"
+
+steps:
+  - run:
+      name: Download pandoc
+      command: curl -L -o << parameters.outfile >> << parameters.url >>
+
+  - run:
+      name: Verify pandoc
+      command: echo "<< parameters.sha256_checksum >>" | sha256sum --check - 
+
+  - run:
+      name: Install pandoc
+      command: |
+        sudo dpkg -i << parameters.outfile >>

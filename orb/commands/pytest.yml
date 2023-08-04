@@ -1,0 +1,35 @@
+description: Run unit tests with pytest
+
+parameters:
+  args:
+    type: string
+    default: "-v -s -rs --durations 6 --maxfail 6 -p no:logging"
+
+  extra_args:
+    type: string
+    default: ""
+
+  coverage_args:
+    type: string
+    default: ""
+
+  use_venv:
+    type: boolean
+    default: true
+
+  tests:
+    type: string
+    default: ""
+
+steps:
+  - when:
+      condition: << parameters.use_venv >>
+      steps:
+        - run:
+            name: Activate virtualenv
+            command: |
+              . venv/bin/activate
+  - run:
+      name: Pytest
+      command: |
+          python3 -m pytest << parameters.args >> << parameters.extra_args >> << parameters.coverage_args >> << parameters.tests >>

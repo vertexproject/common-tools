@@ -1,0 +1,44 @@
+description: >
+  This command creates (or restores from cache) a virtualenv, installs pip
+  packages, and caches the virtualenv.
+
+parameters:
+  args:
+    type: string
+    default: "--progress-bar off -U"
+    description: Arguments to pass to pip.
+
+  extra_args:
+    type: string
+    default: ""
+    description: Extra arguments to pass to pip.
+
+  cache:
+    type: boolean
+    default: true
+
+  packages:
+    type: string
+    description: List of pip packages to install.
+
+steps:
+  - when:
+      condition: << parameters.cache >>
+      steps:
+        - restore_cache:
+            key: &pip-install-cache-key v1-venv-{{ .Branch }}-<< parameters.packages >>
+
+  - run:
+      name: Install python dependencies into virtual environment
+      command: |
+        python3 -m venv --copies venv
+        . venv/bin/activate
+        python3 -m pip install << parameters.args >> << parameters.extra_args >>  << parameters.packages >>
+
+  - when:
+      condition: << parameters.cache >>
+      steps:
+        - save_cache:
+            paths:
+              - ./venv
+            key: *pip-install-cache-key

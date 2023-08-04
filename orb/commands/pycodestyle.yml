@@ -1,0 +1,31 @@
+description: Run pycodestyle on specified directories.
+
+parameters:
+  args:
+    type: string
+    default: ""
+
+  extra_args:
+    type: string
+    default: ""
+
+  directories:
+    type: string
+
+  use_venv:
+    type: boolean
+    default: true
+
+steps:
+  - when:
+      condition: << parameters.use_venv >>
+      steps:
+        - run:
+            name: Activate virtualenv
+            command: |
+              . venv/bin/activate
+
+  - run:
+      name: Run pycodestyle
+      command: |
+        pycodestyle << parameters.args >> << parameters.extra_args >> << parameters.directories >>
