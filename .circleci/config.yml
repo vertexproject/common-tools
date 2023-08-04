@@ -4,160 +4,142 @@
 #
 version: 2.1
 
-commands:
+executors:
+  cimg-python-311:
+    docker:
+      - image: cimg/python:3.11
 
-  do_test_execution:
-    description: "Execute unit tests via pytest"
+commands:
+  pytest:
+    description: Execute unit tests with pytest
+    parameters:
+      args:
+        type: string
+        default: "-v -s -rs --durations 6 --maxfail 6 -p no:logging"
+      extra_args:
+        type: string
+        default: ""
+      coverage_args:
+        type: string
+        default: ""
     steps:
       - run:
-          name: run tests
+          name: Pytest
           command: |
             . venv/bin/activate
-             python3 -m pytest -v -s -rs --durations 6 --maxfail 6 -p no:logging ${COVERAGE_ARGS}
+             python3 -m pytest << parameters.args >> << parameters.extra_args >> << parameters.coverage_args >>
 
-  test_steps_python:
-    description: "Python test steps"
+  install-pandoc:
+    description: Install pandoc
     steps:
-      - checkout
-
       - run:
-          name: install pandoc
+          name: Install pandoc
           command: |
             curl -L -o pandoc-amd64.deb https://github.com/jgm/pandoc/releases/download/2.14.0.1/pandoc-2.14.0.1-1-amd64.deb
             sha256sum --check pandoc.deb.sha256
             sudo dpkg -i pandoc-amd64.deb
 
-      - restore_cache:
-          keys:
-            - v3-venv-{{ .Environment.CIRCLE_JOB }}-{{ .Branch }}-{{ checksum "setup.py" }}
+  pip-install:
+    description: Install pip packages
+    parameters:
+      args:
+        type: string
+        default: "-U"
+      extra_args:
+        type: string
+        default: ""
+      cache:
+        type: boolean
+        default: true
+      packages:
+        type: string
+    steps:
+      - when:
+          condition: << parameters.cache >>
+          steps:
+            - restore_cache:
+                key: &pip-install-cache-key v1-venv-{{ .Branch }}-<< parameters.packages >>
 
       - run:
-          name: install requirements
+          name: Install python dependencies into virtual environment
           command: |
             python3 -m venv --copies venv
             . venv/bin/activate
-            python -m pip install -U wheel pip
-            python -m pip install -U -r requirements.txt
+            python3 -m pip install << parameters.args >> << parameters.extra_args >>  << parameters.packages >>
 
-      - save_cache:
-          paths:
-            - ./venv
-          key: v3-venv-{{ .Environment.CIRCLE_JOB }}-{{ .Branch }}-{{ checksum "setup.py" }}
+      - when:
+          condition: << parameters.cache >>
+          steps:
+            - save_cache:
+                paths:
+                  - ./venv
+                key: *pip-install-cache-key
 
+  pycodestyle:
+    description: Run pycodestyle on specified directories.
+    parameters:
+      args:
+        type: string
+        default: ""
+      extra_args:
+        type: string
+        default: ""
+      directories:
+        type: string
+        default: ""
+    steps:
       - run:
-          name: syntax
+          name: Run pycodestyle
           command: |
             . venv/bin/activate
-            if [ -n "${RUN_SYNTAX}" ]; then pycodestyle --exclude venv; fi;
+            pycodestyle << parameters.args >> << parameters.extra_args >> << parameters.directories >>
 
-      - do_test_execution
+jobs:
+  pytest:
+    parallelism: 1
+    executor: cimg-python-311
 
-  deploy_to_pypi_nosdist:
-    description: "Publish packages to pypi"
+    working_directory: ~/repo
+
     steps:
       - checkout
 
-      - restore_cache:
-          keys:
-            - v3-venv-{{ .Environment.CIRCLE_JOB }}-{{ .Branch }}-{{ checksum "setup.py" }}
+      - install-pandoc
 
-      - run:
-          name: install python dependencies
-          command: |
-            python3 -m venv venv
-            . venv/bin/activate
-            python3 -m pip install -U wheel pip twine
-            python3 -m pip install -U -r requirements.txt
+      - pip-install:
+          packages: wheel pip -r requirements.txt
 
-      - save_cache:
-          paths:
-            - ./venv
-          key: v3-venv-{{ .Environment.CIRCLE_JOB }}-{{ .Branch }}-{{ checksum "setup.py" }}
+      - pycodestyle:
+          directories: vtx_common
+          args: --exclude venv
 
-      - run:
-          name: verify git tag vs. version
-          command: |
-            env | grep -i circle
-            . venv/bin/activate
-            python setup.py verify
+      - pytest:
+          coverage_args: --cov vtx_common --no-cov-on-fail
 
-      - run:
-          name: init .pypirc
-          command: |
-            echo -e "[pypi]" >> ~/.pypirc
-            echo -e "username = $PYPI_USERNAME" >> ~/.pypirc
-            echo -e "password = $PYPI_PASSWORD" >> ~/.pypirc
-
-      - run:
-          name: create packages
-          command: |
-            . venv/bin/activate
-            python setup.py bdist_wheel --python-tag=$PYTHON_TAG
-
-      - run:
-          name: smoke packages
-          command: |
-            mkdir -p /tmp/wheeltest
-            python3 -m venv /tmp/wheeltest/venv
-            cp dist/*.whl /tmp/wheeltest
-            cd /tmp/wheeltest
-            . ./venv/bin/activate
-            python3 -m pip install -U wheel pip
-            python3 -m pip install *.whl
-            python3 -c "$PYPI_SMOKE_CODE"
-            deactivate
-
-      - run:
-          name: upload to pypi
-          command: |
-            . venv/bin/activate
-            twine upload dist/*
-
-  deploy_to_pypi:
-    description: "Publish packages to pypi"
+  deploy_pypi:
+    executor: cimg-python-311
     steps:
       - checkout
 
-      - restore_cache:
-          keys:
-            - v3-venv-{{ .Environment.CIRCLE_JOB }}-{{ .Branch }}-{{ checksum "setup.py" }}
+      - pip-install:
+          packages: wheel pip twine -r requirements.txt
 
       - run:
-          name: install python dependencies
-          command: |
-            python3 -m venv venv
-            . venv/bin/activate
-            python3 -m pip install -U wheel pip twine
-            python3 -m pip install -U -r requirements.txt
-
-      - save_cache:
-          paths:
-            - ./venv
-          key: v3-venv-{{ .Environment.CIRCLE_JOB }}-{{ .Branch }}-{{ checksum "setup.py" }}
-
-      - run:
-          name: verify git tag vs. version
-          command: |
-            env | grep -i circle
-            . venv/bin/activate
-            python setup.py verify
-
-      - run:
-          name: init .pypirc
-          command: |
-            echo -e "[pypi]" >> ~/.pypirc
-            echo -e "username = $PYPI_USERNAME" >> ~/.pypirc
-            echo -e "password = $PYPI_PASSWORD" >> ~/.pypirc
-
-      - run:
-          name: create packages
+          name: Create pypi packages
           command: |
             . venv/bin/activate
             python setup.py sdist
-            python setup.py bdist_wheel --python-tag=$PYTHON_TAG
+            python setup.py bdist_wheel --python-tag=py311
 
       - run:
-          name: smoke packages
+          name: Verify git tag vs. version
+          command: |
+            env | grep -i circle
+            . venv/bin/activate
+            python setup.py verify
+
+      - run:
+          name: Smoke test pypi packages
           command: |
             mkdir -p /tmp/wheeltest
             mkdir -p /tmp/sdisttest
@@ -169,231 +151,62 @@ commands:
             . ./venv/bin/activate
             python3 -m pip install -U wheel pip
             python3 -m pip install *.whl
-            python3 -c "$PYPI_SMOKE_CODE"
+            python3 -c "import vtx_common; print(vtx_common._verstring)"
             deactivate
             cd /tmp/sdisttest
             . ./venv/bin/activate
             python3 -m pip install -U wheel pip
             python3 -m pip install *.tar.gz
-            python3 -c "$PYPI_SMOKE_CODE"
+            python3 -c "import vtx_common; print(vtx_common._verstring)"
             deactivate
 
       - run:
           name: upload to pypi
           command: |
+            echo -e "[pypi]" >> ~/.pypirc
+            echo -e "username = $PYPI_USERNAME" >> ~/.pypirc
+            echo -e "password = $PYPI_PASSWORD" >> ~/.pypirc
             . venv/bin/activate
             twine upload dist/*
 
   deploy_github_release:
-    description: "Attempt to create a github release for the current tag with release notes."
-    steps:
-      - checkout
-      - run:
-          name: install libraries
-          command: |
-            python3 -m pip install -r requirements.txt
-      - run:
-          name: cut release
-          command: |
-            python3 -m vtx_common.tools.github_release
-
-jobs:
-
-  python37:
-    parallelism: 1
-    docker:
-      - image: cimg/python:3.7
-        environment:
-          PYVERS: 3.7
-          RUN_SYNTAX: 1
-          COVERAGE_ARGS: --cov vtx_common --no-cov-on-fail
-
-    working_directory: ~/repo
-
-    steps:
-      - test_steps_python
-
-  python38:
-    parallelism: 1
-    docker:
-      - image: cimg/python:3.8
-        environment:
-          PYVERS: 3.8
-          RUN_SYNTAX: 1
-          COVERAGE_ARGS: --cov vtx_common --no-cov-on-fail
-
-    working_directory: ~/repo
-
-    steps:
-      - test_steps_python
-
-  python310:
-    parallelism: 1
-    docker:
-      - image: cimg/python:3.10
-        environment:
-          PYVERS: 3.10
-          RUN_SYNTAX: 1
-          COVERAGE_ARGS: --cov vtx_common --no-cov-on-fail
-
-    working_directory: ~/repo
-
-    steps:
-      - test_steps_python
-
-  python311:
-    parallelism: 1
     docker:
       - image: cimg/python:3.11
-        environment:
-          PYVERS: 3.11
-          RUN_SYNTAX: 1
-          COVERAGE_ARGS: --cov vtx_common --no-cov-on-fail
-
-    working_directory: ~/repo
-
     steps:
-      - test_steps_python
+      - pip-install:
+          packages: -r requirements.txt
+      - run:
+          name: Create github release
+          command: python3 -m vtx_common.tools.github_release
 
-  deploy_pypi_37:
-    docker:
-      - image: cimg/python:3.7
-        environment:
-          PYPI_SMOKE_CODE: import vtx_common; print(vtx_common._verstring)
-          PYTHON_TAG: py37
+filters:
+  test_filter: &test_filter
+    tags:
+      only: /.*/
+    branches:
+      only: /.*/
 
-    steps:
-      - deploy_to_pypi_nosdist
-
-  deploy_pypi_38:
-    docker:
-      - image: cimg/python:3.8
-        environment:
-          PYPI_SMOKE_CODE: import vtx_common; print(vtx_common._verstring)
-          PYTHON_TAG: py38
-
-    steps:
-      - deploy_to_pypi_nosdist
-
-  deploy_pypi_310:
-    docker:
-      - image: cimg/python:3.10
-        environment:
-          PYPI_SMOKE_CODE: import vtx_common; print(vtx_common._verstring)
-          PYTHON_TAG: py310
-
-    steps:
-      - deploy_to_pypi_nosdist
-
-  deploy_pypi:
-    docker:
-      - image: cimg/python:3.11
-        environment:
-          PYPI_SMOKE_CODE: import vtx_common; print(vtx_common._verstring)
-          PYTHON_TAG: py311
-
-    steps:
-      - deploy_to_pypi
-
-  deploy_github_release:
-    docker:
-      - image: cimg/python:3.10
-    steps:
-      - deploy_github_release
+  deploy_filter: &deploy_filter
+    tags:
+      only: /^v[0-9]\.[0-9]+\.[0-9]+((a|b|rc)[0-9]*)?$/
+    branches:
+      ignore: /.*/
 
 workflows:
   version: 2
   run_tests:
     jobs:
-      - python37:
-          filters:
-            tags:
-              only: /.*/
-            branches:
-              only: /.*/
-
-      - python38:
-          filters:
-            tags:
-              only: /.*/
-            branches:
-              only: /.*/
-
-      - python310:
-          filters:
-            tags:
-              only: /.*/
-            branches:
-              only: /.*/
-
-      - python311:
-          filters:
-            tags:
-              only: /.*/
-            branches:
-              only: /.*/
-
-      - deploy_pypi_37:
-          requires:
-            - python37
-            - python38
-            - python310
-            - python311
-          context: PublicPypiAccess
-          filters:
-            tags:
-              only: /^v[0-9]\.[0-9]+\.[0-9]+((a|b|rc)[0-9]*)?$/
-            branches:
-              ignore: /.*/
-
-      - deploy_pypi_38:
-          requires:
-            - python37
-            - python38
-            - python310
-            - python311
-          context: PublicPypiAccess
-          filters:
-            tags:
-              only: /^v[0-9]\.[0-9]+\.[0-9]+((a|b|rc)[0-9]*)?$/
-            branches:
-              ignore: /.*/
-
-      - deploy_pypi_310:
-          requires:
-            - python37
-            - python38
-            - python310
-            - python311
-          context: PublicPypiAccess
-          filters:
-            tags:
-              only: /^v[0-9]\.[0-9]+\.[0-9]+((a|b|rc)[0-9]*)?$/
-            branches:
-              ignore: /.*/
+      - pytest:
+          filters: *test_filter
 
       - deploy_pypi:
           requires:
-            - python37
-            - python38
-            - python310
-            - python311
+            - pytest
           context: PublicPypiAccess
-          filters:
-            tags:
-              only: /^v[0-9]\.[0-9]+\.[0-9]+((a|b|rc)[0-9]*)?$/
-            branches:
-              ignore: /.*/
+          filters: *deploy_filter
 
       - deploy_github_release:
           requires:
             - deploy_pypi
-            - deploy_pypi_37
-            - deploy_pypi_38
-            - deploy_pypi_310
           context: GithubMachine
-          filters:
-            tags:
-              only: /^v[0-9]\.[0-9]+\.[0-9]+((a|b|rc)[0-9]*)?$/
-            branches:
-              ignore: /.*/
+          filters: *deploy_filter
