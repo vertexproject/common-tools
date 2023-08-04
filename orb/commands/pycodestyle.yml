@@ -28,4 +28,4 @@ steps:
   - run:
       name: Run pycodestyle
       command: |
-        pycodestyle << parameters.args >> << parameters.extra_args >> << parameters.directories >>
+        python -m pycodestyle << parameters.args >> << parameters.extra_args >> << parameters.directories >>
