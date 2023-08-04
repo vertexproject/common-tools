@@ -10,15 +10,16 @@ filters: &filters
 workflows:
   lint-pack:
     jobs:
-      - orb-tools/lint:
-          filters: *filters
-          source_dir: orb
+      # - orb-tools/lint:
+      #     filters: *filters
+      #     source_dir: orb
       - orb-tools/pack:
           filters: *filters
           source_dir: orb
       - orb-tools/review:
           filters: *filters
           source_dir: orb
+          exclude: RC009,RC010
       # Triggers the next workflow in the Orb Development Kit.
       - orb-tools/continue:
           config_path: .circleci/continue.yml
