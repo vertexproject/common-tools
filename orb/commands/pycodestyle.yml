@@ -27,9 +27,9 @@ steps:
               pycodestyle << parameters.args >> << parameters.extra_args >> << parameters.directories >>
 
   - unless:
-      condition: << parameters.use_env >>
+      condition: << parameters.use_venv >>
       steps:
         - run:
             name: Run pycodestyle
             command: |
-              python -m pycodestyle << parameters.args >> << parameters.extra_args >> << parameters.directories >>
+              pycodestyle << parameters.args >> << parameters.extra_args >> << parameters.directories >>
