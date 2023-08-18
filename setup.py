@@ -46,7 +46,7 @@ setup(
                                     ]),
 
     include_package_data=True,
-
+    python_requires='>=3.11',
     install_requires=[
         'PyGithub==1.53',
         'PyYAML>=5.4,<6.1.0',
@@ -72,9 +72,6 @@ setup(
         'Topic :: System :: Distributed Computing',
         'Topic :: System :: Software Distribution',
 
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3.11',
     ],
     cmdclass={

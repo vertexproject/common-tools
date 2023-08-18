@@ -2,6 +2,15 @@
 Vertex Common Tools Changelog
 *****************************
 
+v0.1.23 - 2023-08-18
+====================
+
+Features and Enhancements
+-------------------------
+- Add tools ``vtx_common.tools.verify_version` and
+  ``vtx_common.tools.replace_commit``.
+- Remove support for Python 3.7, 3.8, and 3.10.
+
 v0.1.22 - 2023-04-26
 ====================
 
