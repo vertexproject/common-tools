@@ -13,7 +13,7 @@ def main(argv):
 
     with open('pyproject.toml', 'r') as fd:
         data = tomllib.loads(fd.read())
-        ptag = data.get('project', {}).get('version', 'project.version missing')
+    ptag = data.get('project', {}).get('version', 'project.version missing')
 
     if etag != ptag:
         info = f"Git tag from {envar} => {etag} does not match the version of this app: {ptag}"

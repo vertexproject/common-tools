@@ -10,17 +10,15 @@ def main(argv):
         ret = subprocess.run(['git', 'rev-parse', 'HEAD'],
                              capture_output=True,
                              timeout=15,
-                             check=False,
-                             text=True,
-                             )
+                             check=True,
+                             text=True,)
     except Exception as e:
         print(f'Error grabbing commit: {e}')
         return 1
     else:
         commit = ret.stdout.strip()
-    with open(filepath, 'rb') as fd:
-        buf = fd.read()
-    content = buf.decode()
+    with open(filepath, 'r') as fd:
+        content = fd.read()
     new_content = content.replace("commit = ''", f"commit = '{commit}'")
     if content == new_content:
         print(f'Unable to insert commit into {filepath}')
