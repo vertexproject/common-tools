@@ -8,7 +8,7 @@ def main(argv):
     envar = 'CIRCLE_TAG'
     if argv:
         envar = argv[0]
-    etag = os.getenv('CIRCLE_TAG', '')
+    etag = os.getenv(envar, '')
     etag = etag.lstrip('v')
 
     with open('pyproject.toml', 'r') as fd:
