@@ -4,7 +4,6 @@ import asyncio
 import logging
 import argparse
 
-import packaging.version as p_version
 import packaging.specifiers as p_specifiers
 
 import yaml
