@@ -2,6 +2,14 @@
 Vertex Common Tools Changelog
 *****************************
 
+v0.1.24 - 2023-08-29
+====================
+
+Features and Enhancements
+-------------------------
+- Update ``vtx_common.tools.gen_pkg_syn_minver`` to be aware of the
+  ``synapse_version`` key in Storm package definitions.
+
 v0.1.23 - 2023-08-18
 ====================
 
