@@ -4,6 +4,8 @@ import asyncio
 import logging
 import argparse
 
+import packaging.specifiers as p_specifiers
+
 import yaml
 
 logger = logging.getLogger(__name__)
@@ -17,14 +19,35 @@ def yamlload(fp):
     return yaml.safe_load(byts.decode('utf8'))
 
 def getMessageFromPkg(pkg, mtyp):
+    reqv = pkg.get('synapse_version')
     minv = pkg.get('synapse_minversion')
     if minv:
         assert len(minv) == 3
         minv = [str(v) for v in minv]
         minv = '.'.join(minv)
-        mesg = f'{mtyp} requires a minimum Synapse version of {minv} or greater.'
+
+        hasmin = False
+        fullspec = p_specifiers.SpecifierSet()
+
+        if reqv:
+            specs = p_specifiers.SpecifierSet(reqv)
+            for spec in specs:
+                if spec.operator in (">", ">="):
+                    hasmin = True
+                    if spec.contains(minv):
+                        fullspec = fullspec & f">={minv}"
+                        continue
+
+                fullspec = fullspec & str(spec)
+
+        if not hasmin:
+            fullspec = fullspec & f">={minv}"
+
+        mesg = f'{mtyp} requires Synapse version {fullspec}.'
+    elif reqv:
+        mesg = f'{mtyp} requires Synapse version {reqv}.'
     else:
-        mesg = f'{mtyp} has no minimum Synapse version specified.'
+        mesg = f'{mtyp} has no Synapse version requirement specified.'
     return mesg
 
 
