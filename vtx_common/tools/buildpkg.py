@@ -21,6 +21,9 @@ logger = logging.getLogger(__name__)
 
 logging.getLogger('vcr').setLevel(logging.WARNING)
 
+TOOLDIR = os.path.split(__file__)[0]
+FILTERPATH = os.path.join(TOOLDIR, 'pandoc_filter.py')
+
 # see https://www.sphinx-doc.org/en/master/usage/restructuredtext/field-lists.html#file-wide-metadata
 re_sphinx_metadata_fields = re.compile(r'^:(tocdepth|nocomments|orphan|nosearch):( \w+)?\n\n', flags=re.MULTILINE)
 
@@ -59,7 +62,7 @@ async def buildPkgDocs(opts):
 
     # Generate the build .RST for stormpackage.md
     if stormpkg_md_present:
-        logger.info(f'Generating stormpkg.rst for {pkgpath}')
+        logger.info(f'Generating stormpackage.rst for {pkgpath}')
         pkgdocs, pkgname = await s_autodoc.docStormpkg(pkgpath)
         with s_common.genfile(docsdir, 'stormpackage.rst') as fd:
             text = pkgdocs.getRstText()
@@ -116,11 +119,14 @@ async def buildPkgDocs(opts):
             _ = fd.write(buf.encode())
 
         logger.info(f'Converting {builtrst} to markdown')
-        os.system(f'pandoc -f rst -t markdown -o {builtmd} {builtrst}')
+        if name == 'stormpackage.rst':
+            os.system(f'pandoc --filter {FILTERPATH} -f rst -t markdown -o {builtmd} {builtrst}')
+        else:
+            os.system(f'pandoc -f rst -t markdown -o {builtmd} {builtrst}')
 
         logger.info(f'Done converting {builtrst} to {builtmd}')
 
-        # Strip out / manipupate the md content
+        # Strip out / manipulate the md content
         with s_common.genfile(builtmd) as fd:
             buf = fd.read().decode()
 

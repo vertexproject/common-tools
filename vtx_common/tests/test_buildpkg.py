@@ -36,3 +36,7 @@ class TestBuildpkg(t_common.TstBase):
         text = s_common.getbytes(os.path.join(builddir, 'bar.md')).decode()
         self.notin(':orphan:', text)
         self.notin(':tocdepth:', text)
+
+        text = s_common.getbytes(os.path.join(builddir, 'stormpackage.md')).decode()
+        # todo: test
+        print('foo') # fixme
