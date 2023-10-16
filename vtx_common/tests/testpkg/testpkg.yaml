@@ -26,6 +26,16 @@ modules:
           Execute a search
           
           This API will foo the bar.
+          
+          Examples:
+              Foo the ``bar``::
+          
+                yield $lib.import(apimod).search(bar)
+          
+              Baz the bam::
+          
+                yield $lib.import(apimod).search(bam)
+
         type:
           type: function
           args:

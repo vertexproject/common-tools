@@ -120,6 +120,7 @@ async def buildPkgDocs(opts):
 
         logger.info(f'Converting {builtrst} to markdown')
         if name == 'stormpackage.rst':
+            # todo: we have the pkgdef so we could also do this only if apidefs are defined
             os.system(f'pandoc --filter {FILTERPATH} -f rst -t markdown -o {builtmd} {builtrst}')
         else:
             os.system(f'pandoc -f rst -t markdown -o {builtmd} {builtrst}')
