@@ -23,7 +23,7 @@ commands:
       - run:
           name: install pandoc
           command: |
-            curl -L -o pandoc-amd64.deb https://github.com/jgm/pandoc/releases/download/2.14.0.1/pandoc-2.14.0.1-1-amd64.deb
+            curl -L -o pandoc-amd64.deb https://github.com/jgm/pandoc/releases/download/3.1.9/pandoc-3.1.9-1-amd64.deb
             sha256sum --check pandoc.deb.sha256
             sudo dpkg -i pandoc-amd64.deb
 
