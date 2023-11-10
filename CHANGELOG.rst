@@ -2,6 +2,13 @@
 Vertex Common Tools Changelog
 *****************************
 
+v0.1.25 - 2023-11-10
+====================
+
+Features and Enhancements
+-------------------------
+- Test CI release process.
+
 v0.1.24 - 2023-08-29
 ====================
 
