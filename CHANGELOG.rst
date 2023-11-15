@@ -9,6 +9,13 @@ Features and Enhancements
 -------------------------
 - Update ``vtx_common.tools.buildpkg`` tool to support multiple items in a definition list.
 
+v0.1.25 - 2023-11-10
+====================
+
+Features and Enhancements
+-------------------------
+- Test CI release process.
+
 v0.1.24 - 2023-08-29
 ====================
 
