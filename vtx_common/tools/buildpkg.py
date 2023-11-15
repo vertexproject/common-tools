@@ -1,10 +1,10 @@
 import os
 import sys
-import json
 import shutil
 import asyncio
 import logging
 import argparse
+import subprocess
 
 try:
     import regex as re
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 logging.getLogger('vcr').setLevel(logging.WARNING)
 
 TOOLDIR = os.path.split(__file__)[0]
-FILTERPATH = os.path.join(TOOLDIR, 'pandoc_filter.py')
+PANDOC_FILTER = os.path.join(TOOLDIR, 'pandoc_filter.py')
 
 # see https://www.sphinx-doc.org/en/master/usage/restructuredtext/field-lists.html#file-wide-metadata
 re_sphinx_metadata_fields = re.compile(r'^:(tocdepth|nocomments|orphan|nosearch):( \w+)?\n\n', flags=re.MULTILINE)
@@ -120,10 +120,17 @@ async def buildPkgDocs(opts):
 
         logger.info(f'Converting {builtrst} to markdown')
         if name == 'stormpackage.rst':
-            # todo: we have the pkgdef so we could also do this only if apidefs are defined
-            os.system(f'pandoc --filter {FILTERPATH} -f rst -t markdown -o {builtmd} {builtrst}')
+            args = ['pandoc', '--filter', PANDOC_FILTER, '-f', 'rst', '-t', 'markdown', '-o', builtmd, builtrst]
         else:
-            os.system(f'pandoc -f rst -t markdown -o {builtmd} {builtrst}')
+            args = ['pandoc', '-f', 'rst', '-t', 'markdown', '-o', builtmd, builtrst]
+
+        r = subprocess.run(args, capture_output=True)
+
+        # Re-dump stderr (logging) to our stderr
+        for line in r.stderr.decode().splitlines():
+            sys.stderr.write(line + '\n')
+
+        assert r.returncode == 0, f'Error converting {builtrst} to {builtmd}'
 
         logger.info(f'Done converting {builtrst} to {builtmd}')
 
@@ -152,7 +159,7 @@ desc = 'A tool for building storm-package docs.'
 async def main(argv):
 
     if s_common is None:
-        logger.error('The synapse package must be installed to use the {prog} tool.')
+        logger.error(f'The synapse package must be installed to use the {prog} tool.')
         return 1
 
     pars = argparse.ArgumentParser(prog=prog, description=desc)

@@ -1,8 +1,16 @@
 import sys
 import json
 
+import packaging.version as p_version
+import packaging.specifiers as p_specifiers
+
+PANDOC_API_REQVERS = '>=1.23.0,<1.24.0'
+
 def walk(elem):
-    # https://pandoc.org/using-the-pandoc-api.html#walking-the-ast
+    '''
+    Walk the pandoc AST, yielding (type, content) tuples.
+    Ref: https://pandoc.org/using-the-pandoc-api.html#walking-the-ast
+    '''
 
     if isinstance(elem, list):
         for subelem in elem:
@@ -17,10 +25,23 @@ def walk(elem):
         return
 
 def main():
+    '''
+    A pandoc filter reads the intermediate JSON-formatted AST generated from the source, makes any modifications,
+    and then writes the JSON-formatted AST to be used to generate the target.
+
+    Ref: https://pandoc.org/filters.html
+
+    Usage:
+
+       pandoc -f rst -t markdown --filter ./vtx_common/tools/pandoc_filter.py -o foo.md foo.rst
+    '''
 
     ast = json.load(sys.stdin)
 
-    # todo: check pandoc-api-version
+    spec = p_specifiers.SpecifierSet(PANDOC_API_REQVERS)
+    vers = p_version.Version('.'.join(str(part) for part in ast['pandoc-api-version']))
+    if vers not in spec:
+        raise Exception(f'Pandoc API version {vers} does not match required version {PANDOC_API_REQVERS}')
 
     for type_, content in walk(ast['blocks']):
 
