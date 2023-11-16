@@ -76,7 +76,4 @@ def main():
     return 0
 
 if __name__ == '__main__':
-    # todo: docs on what this is doing and how to use it
-    # pandoc -f rst -t markdown --filter ./vtx_common/tools/pandoc_filter.py -o foo.md foo.rst
-    # specify -t json to view the intermediate json ast representation
     sys.exit(main())
