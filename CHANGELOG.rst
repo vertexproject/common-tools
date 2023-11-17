@@ -2,6 +2,13 @@
 Vertex Common Tools Changelog
 *****************************
 
+NEXTVERS - 2023-XX-YY
+=====================
+
+Features and Enhancements
+-------------------------
+- Update ``vtx_common.tools.buildpkg`` tool to support multiple items in a definition list.
+
 v0.1.25 - 2023-11-10
 ====================
 
@@ -22,7 +29,7 @@ v0.1.23 - 2023-08-18
 
 Features and Enhancements
 -------------------------
-- Add tools ``vtx_common.tools.verify_version` and
+- Add tools ``vtx_common.tools.verify_version`` and
   ``vtx_common.tools.replace_commit``.
 - Remove support for Python 3.7, 3.8, and 3.10.
 
@@ -67,7 +74,7 @@ v0.1.17 - 2022-12-05
 
 Bugfixes
 --------
-- Update the requirements for ``pytest`, ``pytest-cov`` and ``pytest-xdist``
+- Update the requirements for ``pytest``, ``pytest-cov`` and ``pytest-xdist``
   in ``setup.py``.
 
 v0.1.16 - 2022-12-01
