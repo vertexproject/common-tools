@@ -2,8 +2,8 @@
 Vertex Common Tools Changelog
 *****************************
 
-NEXTVERS - 2023-XX-YY
-=====================
+v0.1.26 - 2024-02-15
+====================
 
 Features and Enhancements
 -------------------------
