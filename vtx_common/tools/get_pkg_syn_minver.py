@@ -20,36 +20,11 @@ def yamlload(fp):
 
 def getMessageFromPkg(pkg, mtyp):
     reqv = pkg.get('synapse_version')
-    minv = pkg.get('synapse_minversion')
-    if minv:
-        assert len(minv) == 3
-        minv = [str(v) for v in minv]
-        minv = '.'.join(minv)
-
-        hasmin = False
-        fullspec = p_specifiers.SpecifierSet()
-
-        if reqv:
-            specs = p_specifiers.SpecifierSet(reqv)
-            for spec in specs:
-                if spec.operator in (">", ">="):
-                    hasmin = True
-                    if spec.contains(minv):
-                        fullspec = fullspec & f">={minv}"
-                        continue
-
-                fullspec = fullspec & str(spec)
-
-        if not hasmin:
-            fullspec = fullspec & f">={minv}"
-
-        mesg = f'{mtyp} requires Synapse version {fullspec}.'
-    elif reqv:
+    if reqv:
         mesg = f'{mtyp} requires Synapse version {reqv}.'
     else:
         mesg = f'{mtyp} has no Synapse version requirement specified.'
     return mesg
-
 
 def main(argv):
     pars = makeargparser()
