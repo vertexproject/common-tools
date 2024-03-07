@@ -8,7 +8,7 @@ import vtx_common.tools.get_pkg_syn_minver as v_gpsm
 def_pkg = {
     'name': 'foo',
     'version': [1, 0, 0],
-    'synapse_minversion': [2, 48, 0],
+    'synapse_version': ">=2.100.0,<3.0.0",
     'modules': [
         {
             'name': 'foo',
@@ -31,23 +31,4 @@ class TestGpsm(t_common.TstBase):
             self.eq(pkg, def_pkg)
 
             mesg = v_gpsm.getMessageFromPkg(pkg, 'Power-Up')
-            self.eq(mesg, 'Power-Up requires Synapse version >=2.48.0.')
-
-            pkg.pop('synapse_minversion')
-            mesg = v_gpsm.getMessageFromPkg(pkg, 'Power-Up')
-            self.eq(mesg, 'Power-Up has no Synapse version requirement specified.')
-
-            pkg['synapse_version'] = '>=2.100.0,<3.0.0'
-
-            mesg = v_gpsm.getMessageFromPkg(pkg, 'Power-Up')
             self.eq(mesg, 'Power-Up requires Synapse version >=2.100.0,<3.0.0.')
-
-            pkg['synapse_minversion'] = [2, 50, 0]
-
-            mesg = v_gpsm.getMessageFromPkg(pkg, 'Power-Up')
-            self.eq(mesg, 'Power-Up requires Synapse version <3.0.0,>=2.100.0.')
-
-            pkg['synapse_minversion'] = [2, 150, 0]
-
-            mesg = v_gpsm.getMessageFromPkg(pkg, 'Power-Up')
-            self.eq(mesg, 'Power-Up requires Synapse version <3.0.0,>=2.150.0.')
