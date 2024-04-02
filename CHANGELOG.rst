@@ -2,6 +2,14 @@
 Vertex Common Tools Changelog
 *****************************
 
+v0.1.27 - 2024-04-02
+====================
+
+Features and Enhancements
+-------------------------
+- Remove use of deprecated ``synapse_minversion`` field from package definitions
+  in favor of ``synapse_version`` requirements specification.
+
 v0.1.26 - 2024-02-15
 ====================
 
