@@ -164,7 +164,7 @@ jobs:
 
   deploy_github_release:
     docker:
-      - image: cimg/python:3.10
+      - image: cimg/python:3.11
     steps:
       - deploy_github_release
 
