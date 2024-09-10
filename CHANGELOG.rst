@@ -2,6 +2,13 @@
 Vertex Common Tools Changelog
 *****************************
 
+v0.1.28 - 2024-08-10
+====================
+
+Bugfixes
+--------
+- Fix the use of ``vtx_common.tools.buildpkg`` when the Synapse module fails to import.
+
 v0.1.27 - 2024-04-02
 ====================
 

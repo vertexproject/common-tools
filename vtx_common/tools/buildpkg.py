@@ -4,6 +4,7 @@ import shutil
 import asyncio
 import logging
 import argparse
+import traceback
 import subprocess
 
 try:
@@ -12,6 +13,7 @@ try:
     import synapse.tools.rstorm as s_rstorm
     import synapse.tools.autodoc as s_autodoc
 except ImportError:
+    traceback.print_exc()
     import re
     s_common = None
     s_rstorm = None
@@ -178,5 +180,6 @@ async def main(argv):
     return 0
 
 if __name__ == '__main__': # pragma: no cover
-    s_common.setlogging(logger, 'DEBUG')
+    if s_common:
+        s_common.setlogging(logger, 'DEBUG')
     sys.exit(asyncio.run(main(sys.argv[1:])))
