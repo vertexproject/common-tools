@@ -2,6 +2,14 @@
 Vertex Common Tools Changelog
 *****************************
 
+v0.2.0 - 2025-07-11
+====================
+
+Features and Enhancements
+-------------------------
+- Remove version constraints for ``PyYAML``, ``pytest``, ``autopep8``, ``pytest-cov``,
+  ``pycodestyle`` and ``pytest-xdist``. This allows PIP to better resolve dependencies.
+
 v0.1.28 - 2024-08-10
 ====================
 
