@@ -186,7 +186,7 @@ workflows:
           context: PublicPypiAccess
           filters:
             tags:
-              only: /^v[0-9]\.[0-9]+\.[0-9]+((a|b|rc)[0-9]*)?$/
+              only: /^v0\.1\.[0-9]+((a|b|rc)[0-9]*)?$/
             branches:
               ignore: /.*/
 
@@ -196,6 +196,6 @@ workflows:
           context: GithubMachine
           filters:
             tags:
-              only: /^v[0-9]\.[0-9]+\.[0-9]+((a|b|rc)[0-9]*)?$/
+              only: /^v0\.1\.[0-9]+((a|b|rc)[0-9]*)?$/
             branches:
               ignore: /.*/
