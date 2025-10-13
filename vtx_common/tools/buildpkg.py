@@ -10,8 +10,8 @@ import subprocess
 try:
     import regex as re
     import synapse.common as s_common
-    import synapse.tools.rstorm as s_rstorm
-    import synapse.tools.autodoc as s_autodoc
+    import synapse.tools.utils.rstorm as s_rstorm
+    import synapse.tools.utils.autodoc as s_autodoc
 except ImportError:
     traceback.print_exc()
     import re
