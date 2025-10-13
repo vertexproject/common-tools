@@ -2,6 +2,13 @@
 Vertex Common Tools Changelog
 *****************************
 
+v0.2.1 - 2025-10-12
+===================
+
+Features and Enhancements
+-------------------------
+- Updated version constraint for ``PyGithub`` to allow recent versions.
+
 v0.2.0 - 2025-07-11
 ===================
 

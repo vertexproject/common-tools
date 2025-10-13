@@ -48,7 +48,7 @@ setup(
     include_package_data=True,
     python_requires='>=3.11',
     install_requires=[
-        'PyGithub==1.53',
+        'PyGithub>=2.8.1,<3.0.0',
         'PyYAML',
         'bump2version>=1.0.1,<2.0.0',
         'pytest',
