@@ -2,7 +2,7 @@
 Vertex Common Tools Changelog
 *****************************
 
-v0.2.1 - 2025-10-12
+v0.2.1 - 2025-10-13
 ===================
 
 Features and Enhancements
