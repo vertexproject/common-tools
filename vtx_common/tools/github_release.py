@@ -354,7 +354,7 @@ def main(argv):
 
         return 0
 
-    gh = github.Github(gh_token)
+    gh = github.Github(auth=github.Auth.Token(gh_token))
 
     logger.info(f'Getting github repo for {gh_repo_path}')
     repo = gh.get_repo(gh_repo_path)
