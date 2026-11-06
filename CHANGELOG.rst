@@ -2,6 +2,14 @@
 Vertex Common Tools Changelog
 *****************************
 
+v0.1.29 - 2026-11-06
+====================
+
+Bugfixes
+--------
+- Pinned ``coverage`` to ``<7.17.1``. Versions 7.17.1 and 7.17.2 can fail ``pytest-cov`` runs with a ``DataError``
+  when combining coverage data files from subprocesses.
+
 v0.1.28 - 2024-08-10
 ====================
 

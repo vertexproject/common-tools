@@ -54,6 +54,7 @@ setup(
         'pytest>=7.2.0,<8.0.0',
         'autopep8>=1.5.3,<2.0.0',
         'pytest-cov>=4.0.0,<5.0.0',
+        'coverage>=7.0.0,<7.17.1',
         'pycodestyle>=2.6.0,<3.0.0',
         'pytest-xdist>=3.0.2,<4.0.0',
     ],
