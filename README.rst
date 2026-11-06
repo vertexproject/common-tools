@@ -46,4 +46,4 @@ include the following:
     markdown documentation for the package that can be viewed in the Synapse UI. This requires having the Synapse
     python package available, as well as ``pandoc``. Pandoc should be ve`rs`ion ``2.14.0.1`` or greater.
 
-This package also installs ``bump2version``, ``pytest``, ``pytest-cov`` and ``pytest-xdist`` packages.
+This package also installs ``bump2version``, ``coverage``, ``pytest``, ``pytest-cov`` and ``pytest-xdist`` packages.
